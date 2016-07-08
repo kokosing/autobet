@@ -58,6 +58,13 @@ public final class App
         public void go()
         {
             System.out.println("loading: " + csvFiles);
+            for (String csvFile : csvFiles) {
+                try (CsvFileReader csvFileReader = new CsvFileReader(csvFile)){
+                    for (Map<String, String> line : csvFileReader) {
+                        System.out.println("DIV: " + line.get("div"));
+                    }
+                }
+            }
         }
 
         @Override
