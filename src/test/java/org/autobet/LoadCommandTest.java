@@ -29,10 +29,14 @@
 package org.autobet;
 
 import org.autobet.ioc.DaggerTestMainComponent;
+import org.autobet.model.Division;
 import org.junit.Before;
 import org.junit.Test;
 
-public class LoadTest
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+public class LoadCommandTest
 {
     @Before
     public void setUp()
@@ -43,6 +47,8 @@ public class LoadTest
     @Test
     public void load()
     {
-        // TODO
+        new App.LoadCommand().load("data/www.football-data.co.uk/mmz4281/0001/B1.csv");
+        assertTrue(Division.count() == 1);
+        assertEquals(Division.where("true").get(0).get("name"), "B1");
     }
 }

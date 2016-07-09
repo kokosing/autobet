@@ -84,6 +84,11 @@
             <artifactId>javax.inject</artifactId>
             <version>1</version>
         </dependency>
+        <dependency>
+            <groupId>org.javalite</groupId>
+            <artifactId>activejdbc</artifactId>
+            <version>1.4.11</version>
+        </dependency>
         <!-- test dependencies -->
         <dependency>
             <groupId>junit</groupId>
@@ -131,6 +136,19 @@
                         <phase>package</phase>
                         <goals>
                             <goal>really-executable-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.javalite</groupId>
+                <artifactId>activejdbc-instrumentation</artifactId>
+                <version>1.4.11</version>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>instrument</goal>
                         </goals>
                     </execution>
                 </executions>
