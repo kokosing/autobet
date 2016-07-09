@@ -16,14 +16,20 @@ package org.autobet;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import org.flywaydb.core.Flyway;
+import org.h2.jdbcx.JdbcDataSource;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+
+import static org.autobet.ImmutableCollectors.toImmutableMap;
 
 public final class App
 {
+    private final Map<String, Command> commands = Stream.of(new LoadCommand())
+            .collect(toImmutableMap(Command::getName));
+
     @Parameter(names = {"--help", "-h"}, help = true)
     private boolean help;
 
@@ -31,9 +37,7 @@ public final class App
     {
         App app = new App();
         JCommander jc = new JCommander(app);
-        Map<String, Command> commands = new HashMap<>();
-        for (Command command : Arrays.<Command>asList(new LoadCommand())) {
-            commands.put(command.getName(), command);
+        for (Command command : app.commands.values()) {
             jc.addCommand(command.getName(), command);
         }
 
@@ -43,8 +47,21 @@ public final class App
             jc.usage();
         }
         else {
-            commands.get(jc.getParsedCommand()).go();
+            app.start(jc);
         }
+    }
+
+    private void start(JCommander jc)
+    {
+        Flyway flyway = new Flyway();
+        JdbcDataSource dataSource = new JdbcDataSource();
+        dataSource.setURL("jdbc:h2:~/.autobet/db.h2");
+        dataSource.setUser("sa");
+        dataSource.setPassword("sa");
+        flyway.setDataSource(dataSource);
+        flyway.migrate();
+
+        commands.get(jc.getParsedCommand()).go();
     }
 
     @Parameters(commandDescription = "Load csv data into database")
@@ -59,7 +76,7 @@ public final class App
         {
             System.out.println("loading: " + csvFiles);
             for (String csvFile : csvFiles) {
-                try (CsvFileReader csvFileReader = new CsvFileReader(csvFile)){
+                try (CsvFileReader csvFileReader = new CsvFileReader(csvFile)) {
                     for (Map<String, String> line : csvFileReader) {
                         System.out.println("DIV: " + line.get("div"));
                     }
