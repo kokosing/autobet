@@ -14,11 +14,24 @@
 
 package org.autobet.ioc;
 
-import dagger.Component;
+import dagger.Module;
+import dagger.Provides;
 import org.flywaydb.core.Flyway;
 
-@Component(modules = AppModule.class)
-public interface AppComponents
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import javax.sql.DataSource;
+
+@Module
+public class FlywayModule
 {
-    public Flyway getFlyway();
+    @Singleton
+    @Provides
+    @Inject
+    public Flyway provideFlyway(DataSource dataSource)
+    {
+        Flyway flyway = new Flyway();
+        flyway.setDataSource(dataSource);
+        return flyway;
+    }
 }

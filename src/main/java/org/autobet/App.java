@@ -16,7 +16,7 @@ package org.autobet;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import org.autobet.ioc.DaggerAppComponents;
+import org.autobet.ioc.DaggerMainComponent;
 
 import java.util.List;
 import java.util.Map;
@@ -52,7 +52,7 @@ public final class App
 
     private void start(JCommander jc)
     {
-        DaggerAppComponents.builder().build().getFlyway().migrate();
+        DaggerMainComponent.create().getFlyway().migrate();
 
         commands.get(jc.getParsedCommand()).go();
     }
