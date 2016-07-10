@@ -30,7 +30,6 @@ package org.autobet;
 
 import org.autobet.model.Division;
 import org.autobet.model.Team;
-import org.javalite.activejdbc.Model;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -45,7 +44,11 @@ public class LoadCommandTest
     @Test
     public void load()
     {
-        new Loader().load("data/www.football-data.co.uk/mmz4281/0001/B1.csv");
+        Loader loader = new Loader();
+        loader.load("data/www.football-data.co.uk/mmz4281/0001/B1.csv");
+        loader.load("data/www.football-data.co.uk/mmz4281/0001/B1.csv");
+        loader.load("data/www.football-data.co.uk/mmz4281/0001/B1.csv");
+
         assertTrue(Division.count() == 1);
         Division b1 = Division.findById(1);
         assertEquals(b1.get("name"), "B1");
