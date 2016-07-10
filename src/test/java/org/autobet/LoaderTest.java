@@ -29,6 +29,7 @@
 package org.autobet;
 
 import org.autobet.model.Division;
+import org.autobet.model.Game;
 import org.autobet.model.Team;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,7 +37,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class LoadCommandTest
+public class LoaderTest
 {
     @Rule
     public TemporaryDatabase temporaryDatabase = new TemporaryDatabase();
@@ -58,6 +59,18 @@ public class LoadCommandTest
         assertEquals(anderlecht.get("id"), 18L);
         assertEquals(anderlecht.get("division_id"), b1.get("id"));
         assertEquals(anderlecht.get("name"), "Anderlecht");
+
+        assertTrue(Game.count() == 306);
+        Game game = Game.findById(1);
+        assertEquals(game.get("id"), 1L);
+        assertEquals(game.get("home_team_id"), 1L);
+        assertEquals(game.get("away_team_id"), 2L);
+        assertEquals(game.get("full_time_home_team_goals"), (byte) 1);
+        assertEquals(game.get("full_time_away_team_goals"), (byte) 2);
+        assertEquals(game.get("full_time_result"), "A");
+        assertEquals(game.get("half_time_home_team_goals"), (byte) 1);
+        assertEquals(game.get("half_time_away_team_goals"), (byte) 1);
+        assertEquals(game.get("half_time_result"), "D");
 
     }
 }
