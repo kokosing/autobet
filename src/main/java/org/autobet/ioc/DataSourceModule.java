@@ -36,7 +36,7 @@ import javax.inject.Singleton;
 import javax.sql.DataSource;
 
 @Module
-public class DbModule
+public class DataSourceModule
 {
     @Singleton
     @Provides

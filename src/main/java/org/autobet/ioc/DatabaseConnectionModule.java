@@ -17,21 +17,38 @@ package org.autobet.ioc;
 import dagger.Module;
 import dagger.Provides;
 import org.flywaydb.core.Flyway;
+import org.javalite.activejdbc.Base;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.sql.DataSource;
 
 @Module
-public class FlywayModule
+public class DatabaseConnectionModule
 {
     @Singleton
     @Provides
     @Inject
-    public Flyway provideFlyway(DataSource dataSource)
+    public DatabaseConnection provideConnection(DataSource dataSource)
     {
-        Flyway flyway = new Flyway();
-        flyway.setDataSource(dataSource);
-        return flyway;
+        return new DatabaseConnection(dataSource);
+    }
+
+    public static class DatabaseConnection
+            implements AutoCloseable
+    {
+        public DatabaseConnection(DataSource dataSource)
+        {
+            Flyway flyway = new Flyway();
+            flyway.setDataSource(dataSource);
+            flyway.migrate();
+            Base.open(dataSource);
+        }
+
+        @Override
+        public void close()
+        {
+            Base.close();
+        }
     }
 }

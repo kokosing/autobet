@@ -17,6 +17,8 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import org.autobet.ioc.DaggerMainComponent;
+import org.autobet.ioc.DatabaseConnectionModule;
+import org.autobet.ioc.DatabaseConnectionModule.DatabaseConnection;
 import org.autobet.model.Division;
 
 import java.util.HashSet;
@@ -55,9 +57,9 @@ public final class App
 
     private void start(JCommander jc)
     {
-        DaggerMainComponent.create().getFlyway().migrate();
-
-        commands.get(jc.getParsedCommand()).go();
+        try (DatabaseConnection _ = DaggerMainComponent.create().connectToDatabase()) {
+            commands.get(jc.getParsedCommand()).go();
+        }
     }
 
     @Parameters(commandDescription = "Load csv data into database")

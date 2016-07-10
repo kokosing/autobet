@@ -19,7 +19,7 @@ import dagger.Component;
 import javax.inject.Singleton;
 
 @Singleton
-@Component(modules = {TestDbModule.class, FlywayModule.class})
+@Component(modules = {TestDbModule.class, DatabaseConnectionModule.class})
 public interface TestMainComponent
         extends MainComponent
 {

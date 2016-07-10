@@ -15,13 +15,12 @@
 package org.autobet.ioc;
 
 import dagger.Component;
-import org.flywaydb.core.Flyway;
 
 import javax.inject.Singleton;
 
 @Singleton
-@Component(modules = {DbModule.class, FlywayModule.class})
+@Component(modules = {DataSourceModule.class, DatabaseConnectionModule.class})
 public interface MainComponent
 {
-    Flyway getFlyway();
+    DatabaseConnectionModule.DatabaseConnection connectToDatabase();
 }
