@@ -29,6 +29,8 @@
 package org.autobet;
 
 import org.autobet.model.Division;
+import org.autobet.model.Team;
+import org.javalite.activejdbc.Model;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -43,8 +45,16 @@ public class LoadCommandTest
     @Test
     public void load()
     {
-        new App.LoadCommand().load("data/www.football-data.co.uk/mmz4281/0001/B1.csv");
+        new Loader().load("data/www.football-data.co.uk/mmz4281/0001/B1.csv");
         assertTrue(Division.count() == 1);
-        assertEquals(Division.where("true").get(0).get("name"), "B1");
+        Division b1 = Division.findById(1);
+        assertEquals(b1.get("name"), "B1");
+
+        assertTrue(Team.count() == 18);
+        Team anderlecht = Team.findById(18);
+        assertEquals(anderlecht.get("id"), 18L);
+        assertEquals(anderlecht.get("division_id"), b1.get("id"));
+        assertEquals(anderlecht.get("name"), "Anderlecht");
+
     }
 }

@@ -17,14 +17,10 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import org.autobet.ioc.DaggerMainComponent;
-import org.autobet.ioc.DatabaseConnectionModule;
 import org.autobet.ioc.DatabaseConnectionModule.DatabaseConnection;
-import org.autobet.model.Division;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.autobet.ImmutableCollectors.toImmutableMap;
@@ -73,23 +69,9 @@ public final class App
         public void go()
         {
             System.out.println("loading: " + csvFiles);
+            Loader loader = new Loader();
             for (String csvFile : csvFiles) {
-                load(csvFile);
-            }
-        }
-
-        public void load(String csvFile)
-        {
-            Set<String> divisions = new HashSet<>();
-            try (CsvFileReader csvFileReader = new CsvFileReader(csvFile)) {
-                for (Map<String, String> line : csvFileReader) {
-                    String division = line.get("div");
-                    if (!divisions.contains(division)) {
-                        new Division().set("name", division).saveIt();
-                        divisions.add(division);
-                        System.out.println("Created division: " + division);
-                    }
-                }
+                loader.load(csvFile);
             }
         }
 
