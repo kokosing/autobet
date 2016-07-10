@@ -18,16 +18,18 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import org.autobet.ioc.DaggerMainComponent;
 import org.autobet.ioc.DatabaseConnectionModule.DatabaseConnection;
+import org.javalite.activejdbc.Base;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static java.util.Objects.requireNonNull;
 import static org.autobet.ImmutableCollectors.toImmutableMap;
 
 public final class App
 {
-    private final Map<String, Command> commands = Stream.of(new LoadCommand())
+    private final Map<String, Command> commands = Stream.of(new LoadCommand(), new QueryCommand())
             .collect(toImmutableMap(Command::getName));
 
     @Parameter(names = {"--help", "-h"}, help = true)
@@ -79,6 +81,32 @@ public final class App
         public String getName()
         {
             return "load";
+        }
+    }
+
+    @Parameters(commandDescription = "Run query")
+    public static final class QueryCommand
+            implements Command
+    {
+        @Parameter(description = "query")
+        private List<String> queries;
+
+        @Override
+        public void go()
+        {
+            requireNonNull(queries, "queries is null");
+            for (String query : queries) {
+                Base.find(query, row -> {
+                    System.out.println(row);
+                    return true;
+                });
+            }
+        }
+
+        @Override
+        public String getName()
+        {
+            return "query";
         }
     }
 
