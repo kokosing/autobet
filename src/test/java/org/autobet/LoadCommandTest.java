@@ -28,11 +28,8 @@
 
 package org.autobet;
 
-import org.autobet.ioc.DaggerTestMainComponent;
-import org.autobet.ioc.DatabaseConnectionModule.DatabaseConnection;
 import org.autobet.model.Division;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -40,19 +37,8 @@ import static org.junit.Assert.assertTrue;
 
 public class LoadCommandTest
 {
-    private DatabaseConnection connection;
-
-    @Before
-    public void setUp()
-    {
-        connection = DaggerTestMainComponent.create().connectToDatabase();
-    }
-
-    @After
-    public void tearDown()
-    {
-        connection.close();
-    }
+    @Rule
+    public TemporaryDatabase temporaryDatabase = new TemporaryDatabase();
 
     @Test
     public void load()
