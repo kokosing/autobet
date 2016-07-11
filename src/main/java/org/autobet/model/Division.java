@@ -15,7 +15,9 @@
 package org.autobet.model;
 
 import org.javalite.activejdbc.Model;
+import org.javalite.activejdbc.annotations.Cached;
 
+@Cached
 public class Division
         extends Model
 {
