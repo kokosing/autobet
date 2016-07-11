@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static java.lang.System.currentTimeMillis;
 import static java.util.Objects.requireNonNull;
 import static org.autobet.ImmutableCollectors.toImmutableMap;
 
@@ -72,8 +73,9 @@ public final class App
         {
             Loader loader = new Loader();
             for (String csvFile : csvFiles) {
-                System.out.println("loading: " + csvFile);
+                long start = currentTimeMillis();
                 loader.load(csvFile);
+                System.out.println("loading: " + csvFile + " in " + (currentTimeMillis() - start) + "ms");
             }
         }
 
