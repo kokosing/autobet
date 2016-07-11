@@ -97,8 +97,12 @@ public class CsvFileReader
     {
         List<String> lineValues = split(nextLine());
         ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
-        for (int i = 0; i < header.size(); i++) {
-            builder.put(header.get(i), lineValues.get(i));
+        for (int i = 0; i < Math.min(header.size(), lineValues.size()); i++) {
+            String value = lineValues.get(i);
+            String key = header.get(i);
+            if (key.length() > 0 && value.length() > 0) {
+                builder.put(key, value);
+            }
         }
         return builder.build();
     }

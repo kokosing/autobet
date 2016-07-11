@@ -70,9 +70,9 @@ public final class App
         @Override
         public void go()
         {
-            System.out.println("loading: " + csvFiles);
             Loader loader = new Loader();
             for (String csvFile : csvFiles) {
+                System.out.println("loading: " + csvFile);
                 loader.load(csvFile);
             }
         }

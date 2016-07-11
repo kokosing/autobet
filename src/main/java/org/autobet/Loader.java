@@ -51,7 +51,6 @@ public class Loader
         return division.orElseGet(() -> {
             Division newDivision = new Division().set("name", divisionName);
             newDivision.saveIt();
-            System.out.println("Created division: " + newDivision.toJson(true));
             return newDivision;
         });
     }
@@ -65,7 +64,6 @@ public class Loader
                         Team newTeam = new Team().set("name", teamName);
                         division.add(newTeam);
                         newTeam.saveIt();
-                        System.out.println("Created team: " + newTeam.toJson(true));
                         return newTeam;
                     });
                 })
@@ -111,7 +109,6 @@ public class Loader
                     .set("away_team_red_cards", line.get("ar"));
 
             newGame.saveIt();
-            System.out.println("Created game: " + newGame.toJson(true));
             return newGame;
         });
     }
