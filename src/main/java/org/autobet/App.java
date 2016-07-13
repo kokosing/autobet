@@ -19,6 +19,7 @@ import com.beust.jcommander.Parameters;
 import org.autobet.ioc.DaggerMainComponent;
 import org.autobet.ioc.DatabaseConnectionModule.DatabaseConnection;
 import org.javalite.activejdbc.Base;
+import org.javalite.activejdbc.DBException;
 
 import java.util.List;
 import java.util.Map;
@@ -74,8 +75,17 @@ public final class App
             Loader loader = new Loader();
             for (String csvFile : csvFiles) {
                 long start = currentTimeMillis();
-                loader.load(csvFile);
-                System.out.println("loading: " + csvFile + " in " + (currentTimeMillis() - start) + "ms");
+                System.out.println("loading: " + csvFile);
+                try {
+                    loader.load(csvFile);
+                    System.out.println("loaded in:" + (currentTimeMillis() - start) + "ms");
+                }
+                catch (DBException ex) {
+                    System.out.println("Unable to load: " + csvFile);
+                    ;
+                    System.out.println(ex.getMessage());
+                    ex.printStackTrace();
+                }
             }
         }
 
