@@ -42,3 +42,5 @@ CREATE TABLE games (
     home_team_red_cards tinyint,
     away_team_red_cards tinyint
 );
+
+CREATE INDEX games_load_index ON games (home_team_id, away_team_id, played_at);
