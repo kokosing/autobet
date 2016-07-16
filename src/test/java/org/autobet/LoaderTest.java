@@ -36,6 +36,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.math.BigDecimal;
+import java.sql.Date;
+import java.util.GregorianCalendar;
 
 import static org.junit.Assert.assertEquals;
 
@@ -73,6 +75,7 @@ public class LoaderTest
         assertEquals(game.get("half_time_home_team_goals"), (byte) 1);
         assertEquals(game.get("half_time_away_team_goals"), (byte) 1);
         assertEquals(game.get("half_time_result"), "D");
+        assertEquals(game.get("played_at"), new Date(new GregorianCalendar(2000, 7, 12).getTime().getTime()));
 
         assertEquals((long) Bet.count(), 3600);
         Bet bet = Bet.findById(1);

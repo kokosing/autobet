@@ -37,7 +37,7 @@ import static org.autobet.ImmutableCollectors.toImmutableList;
 
 public class Loader
 {
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/mm/yy");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
 
     private final Map<String, BetFactory> betFactories;
 
