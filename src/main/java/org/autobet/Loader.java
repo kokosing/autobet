@@ -14,12 +14,18 @@
 
 package org.autobet;
 
+import com.google.common.collect.ImmutableMap;
+import org.autobet.model.BetType;
+import org.autobet.model.BetVendor;
 import org.autobet.model.Division;
 import org.autobet.model.Game;
 import org.autobet.model.Team;
+import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.Model;
 
 import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -31,7 +37,31 @@ import static org.autobet.ImmutableCollectors.toImmutableList;
 
 public class Loader
 {
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/mm/yy");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/mm/yy");
+
+    private final Map<String, BetFactory> betFactories;
+
+    public Loader()
+    {
+        betFactories = createBetFactories();
+    }
+
+    private Map<String, BetFactory> createBetFactories()
+    {
+        ImmutableMap.Builder<String, BetFactory> builder = ImmutableMap.builder();
+        List<BetVendor> betVendors = BetVendor.findAll();
+        List<BetType> betTypes = BetType.findAll();
+        for (BetVendor betVendor : betVendors) {
+            for (BetType betType : betTypes) {
+                String key = betVendor.getString("bet_prefix") + betType.getString("bet_suffix");
+                key = key.toLowerCase();
+                builder.put(key, (preparedStatement, game, odds) -> {
+                    Base.addBatch(preparedStatement, betVendor.getId(), betType.getId(), game.getId(), odds);
+                });
+            }
+        }
+        return builder.build();
+    }
 
     public void load(String csvFile)
     {
@@ -70,13 +100,13 @@ public class Loader
                 .collect(toImmutableList());
     }
 
-    private Game loadGame(List<Team> teams, Map<String, String> line)
+    private void loadGame(List<Team> teams, Map<String, String> line)
     {
         Date date = parseDate(line.get("date"));
         Object homeTeamId = teams.get(0).getId();
         Object awayTeamId = teams.get(1).getId();
         Optional<Game> game = findSingle(Game.find("home_team_id = ? and away_team_id = ? and played_at = ?", homeTeamId, awayTeamId, date));
-        return game.orElseGet(() -> {
+        if (!game.isPresent()) {
             Game newGame = new Game()
                     .set("home_team_id", homeTeamId)
                     .set("away_team_id", awayTeamId)
@@ -109,8 +139,8 @@ public class Loader
                     .set("away_team_red_cards", line.get("ar"));
 
             newGame.saveIt();
-            return newGame;
-        });
+            loadBets(newGame, line);
+        }
     }
 
     private Date parseDate(String date)
@@ -136,10 +166,27 @@ public class Loader
         }
     }
 
-    private void loadGames()
+    private void loadBets(Game game, Map<String, String> line)
     {
-        /**tinyint
-         **/
+        PreparedStatement preparedStatement = Base.startBatch(
+                "INSERT INTO bets(bet_vendor_id, bet_type_id, game_id, odds) values(?, ?, ?, ?)");
+        for (String betKey : betFactories.keySet()) {
+            String odds = line.get(betKey);
+            if (odds != null) {
+                betFactories.get(betKey).createIfNotExists(preparedStatement, game, odds);
+            }
+        }
+        Base.executeBatch(preparedStatement);
+        try {
+            preparedStatement.close();
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
+    private interface BetFactory
+    {
+        void createIfNotExists(PreparedStatement preparedStatement, Game game, String odds);
     }
 }

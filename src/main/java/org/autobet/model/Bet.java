@@ -14,7 +14,9 @@
 package org.autobet.model;
 
 import org.javalite.activejdbc.Model;
+import org.javalite.activejdbc.annotations.Table;
 
+@Table("bets")
 public class Bet
         extends Model
 {

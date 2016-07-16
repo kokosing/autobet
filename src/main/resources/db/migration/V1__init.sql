@@ -81,4 +81,4 @@ CREATE TABLE bets (
     game_id bigint,
     odds decimal(10,4));
 
-CREATE INDEX bet_by_game_index ON bets (game_id);
+CREATE INDEX bets_by_game_index ON bets (game_id);

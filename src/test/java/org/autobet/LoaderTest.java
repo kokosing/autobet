@@ -28,14 +28,16 @@
 
 package org.autobet;
 
+import org.autobet.model.Bet;
 import org.autobet.model.Division;
 import org.autobet.model.Game;
 import org.autobet.model.Team;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.math.BigDecimal;
+
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class LoaderTest
 {
@@ -50,17 +52,17 @@ public class LoaderTest
         loader.load("data/www.football-data.co.uk/mmz4281/0001/B1.csv");
         loader.load("data/www.football-data.co.uk/mmz4281/0001/B1.csv");
 
-        assertTrue(Division.count() == 1);
+        assertEquals((long) Division.count(), 1);
         Division b1 = Division.findById(1);
         assertEquals(b1.get("name"), "B1");
 
-        assertTrue(Team.count() == 18);
+        assertEquals((long) Team.count(), 18);
         Team anderlecht = Team.findById(18);
         assertEquals(anderlecht.get("id"), 18L);
         assertEquals(anderlecht.get("division_id"), b1.get("id"));
         assertEquals(anderlecht.get("name"), "Anderlecht");
 
-        assertTrue(Game.count() == 306);
+        assertEquals((long) Game.count(), 306);
         Game game = Game.findById(1);
         assertEquals(game.get("id"), 1L);
         assertEquals(game.get("home_team_id"), 1L);
@@ -72,5 +74,12 @@ public class LoaderTest
         assertEquals(game.get("half_time_away_team_goals"), (byte) 1);
         assertEquals(game.get("half_time_result"), "D");
 
+        assertEquals((long) Bet.count(), 3600);
+        Bet bet = Bet.findById(1);
+        assertEquals(bet.getId(), 1L);
+        assertEquals(bet.get("bet_vendor_id"), 4L);
+        assertEquals(bet.get("bet_type_id"), 1L);
+        assertEquals(bet.get("game_id"), 1L);
+        assertEquals(bet.get("odds"), new BigDecimal("2.2000"));
     }
 }
