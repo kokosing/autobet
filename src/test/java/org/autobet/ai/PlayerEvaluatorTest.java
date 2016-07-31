@@ -38,6 +38,6 @@ public class PlayerEvaluatorTest
         RandomPlayer player = new RandomPlayer();
         double evaluation = evaluator.evaluate(player, Date.valueOf("2000-01-01"), Date.valueOf("2000-12-31"));
 
-        assertTrue(evaluation < 0);
+        assertTrue(evaluation < 100);
     }
 }
