@@ -22,8 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.Math.toIntExact;
+import static java.util.Objects.requireNonNull;
 
 public class GoalBasedTeamRater
         implements TeamRater
@@ -31,6 +33,9 @@ public class GoalBasedTeamRater
     @Override
     public Optional<Integer> rate(Team team, Date date)
     {
+        requireNonNull(team, "team is null");
+        requireNonNull(date, "date is null");
+
         List<Map> ratings = Base.findAll(
                 "SELECT count(*) AS count, sum(scored) AS total_scored, sum(lost) AS total_lost FROM (" +
                         "SELECT CASE home_team_id " +

@@ -34,6 +34,8 @@ import org.autobet.ioc.DatabaseConnectionModule;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 
@@ -43,8 +45,26 @@ import java.io.IOException;
 public class TemporaryDatabase
         extends ExternalResource
 {
+    private static final Logger log = LoggerFactory.getLogger(TemporaryDatabase.class);
+
     private final TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private final boolean load;
     private DatabaseConnectionModule.DatabaseConnection connection;
+
+    public static TemporaryDatabase loaded()
+    {
+        return new TemporaryDatabase(true);
+    }
+
+    public static TemporaryDatabase empty()
+    {
+        return new TemporaryDatabase(false);
+    }
+
+    private TemporaryDatabase(boolean load)
+    {
+        this.load = load;
+    }
 
     @Override
     protected void before()
@@ -64,6 +84,12 @@ public class TemporaryDatabase
                 return dataSource;
             }
         }).build().connectToDatabase();
+
+        if (load) {
+            Loader loader = new Loader();
+            loader.load("data/www.football-data.co.uk/mmz4281/0001/B1.csv");
+            log.info("loaded");
+        }
     }
 
     private File newFile()

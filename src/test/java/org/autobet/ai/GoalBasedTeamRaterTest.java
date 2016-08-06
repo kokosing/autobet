@@ -14,7 +14,6 @@
 
 package org.autobet.ai;
 
-import org.autobet.Loader;
 import org.autobet.TemporaryDatabase;
 import org.autobet.model.Team;
 import org.junit.Rule;
@@ -30,14 +29,11 @@ import static org.junit.Assert.assertTrue;
 public class GoalBasedTeamRaterTest
 {
     @Rule
-    public TemporaryDatabase temporaryDatabase = new TemporaryDatabase();
+    public TemporaryDatabase temporaryDatabase = TemporaryDatabase.loaded();
 
     @Test
     public void evaluateRandomPlayer()
     {
-        Loader loader = new Loader();
-        loader.load("data/www.football-data.co.uk/mmz4281/0001/B1.csv");
-
         GoalBasedTeamRater rater = new GoalBasedTeamRater();
 
         Team team = Team.findFirst("true");

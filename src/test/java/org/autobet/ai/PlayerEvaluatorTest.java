@@ -14,7 +14,6 @@
 
 package org.autobet.ai;
 
-import org.autobet.Loader;
 import org.autobet.TemporaryDatabase;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,13 +25,11 @@ import static org.junit.Assert.assertTrue;
 public class PlayerEvaluatorTest
 {
     @Rule
-    public TemporaryDatabase temporaryDatabase = new TemporaryDatabase();
+    public TemporaryDatabase temporaryDatabase = TemporaryDatabase.loaded();
 
     @Test
-    public void evaluateRandomPlayer() {
-        Loader loader = new Loader();
-        loader.load("data/www.football-data.co.uk/mmz4281/0001/B1.csv");
-
+    public void evaluateRandomPlayer()
+    {
         PlayerEvaluator evaluator = new PlayerEvaluator();
 
         RandomPlayer player = new RandomPlayer();

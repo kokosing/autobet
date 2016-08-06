@@ -44,7 +44,7 @@ import static org.junit.Assert.assertEquals;
 public class LoaderTest
 {
     @Rule
-    public TemporaryDatabase temporaryDatabase = new TemporaryDatabase();
+    public TemporaryDatabase temporaryDatabase = TemporaryDatabase.empty();
 
     @Test
     public void load()
