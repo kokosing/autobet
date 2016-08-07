@@ -77,8 +77,8 @@ public final class App
                 long start = currentTimeMillis();
                 System.out.println("loading: " + csvFile);
                 try {
-                    loader.load(csvFile);
-                    System.out.println("loaded in:" + (currentTimeMillis() - start) + "ms");
+                    int load = loader.load(csvFile);
+                    System.out.println("loaded " + load + " new objects in:" + (currentTimeMillis() - start) + "ms");
                 }
                 catch (DBException ex) {
                     System.out.println("Unable to load: " + csvFile);

@@ -87,8 +87,8 @@ public class TemporaryDatabase
 
         if (load) {
             Loader loader = new Loader();
-            loader.load("data/www.football-data.co.uk/mmz4281/0001/B1.csv");
-            log.info("loaded");
+            int loadedCount = loader.load("data/www.football-data.co.uk/mmz4281/0001/B1.csv");
+            log.info("loaded objects: " + loadedCount);
         }
     }
 

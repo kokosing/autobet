@@ -31,17 +31,18 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static org.autobet.ImmutableCollectors.toImmutableList;
 
-public class Loader
+class Loader
 {
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
 
     private final Map<String, BetFactory> betFactories;
 
-    public Loader()
+    Loader()
     {
         betFactories = createBetFactories();
     }
@@ -57,35 +58,39 @@ public class Loader
                 key = key.toLowerCase();
                 builder.put(key, (preparedStatement, game, odds) -> {
                     Base.addBatch(preparedStatement, betVendor.getId(), betType.getId(), game.getId(), odds);
+                    return true;
                 });
             }
         }
         return builder.build();
     }
 
-    public void load(String csvFile)
+    int load(String csvFile)
     {
+        AtomicInteger counter = new AtomicInteger();
         try (CsvFileReader csvFileReader = new CsvFileReader(csvFile)) {
             for (Map<String, String> line : csvFileReader) {
-                Division division = loadDivision(line);
-                List<Team> teams = loadTeams(division, line);
-                loadGame(teams, line);
+                Division division = loadDivision(line, counter);
+                List<Team> teams = loadTeams(division, line, counter);
+                loadGame(teams, line, counter);
             }
         }
+        return counter.get();
     }
 
-    private Division loadDivision(Map<String, String> line)
+    private Division loadDivision(Map<String, String> line, AtomicInteger counter)
     {
         String divisionName = line.get("div");
         Optional<Division> division = findSingle(Division.find("name = ?", divisionName));
         return division.orElseGet(() -> {
             Division newDivision = new Division().set("name", divisionName);
             newDivision.saveIt();
+            counter.incrementAndGet();
             return newDivision;
         });
     }
 
-    private List<Team> loadTeams(Division division, Map<String, String> line)
+    private List<Team> loadTeams(Division division, Map<String, String> line, AtomicInteger counter)
     {
         return Stream.of(line.get("hometeam"), line.get("awayteam"))
                 .map(teamName -> {
@@ -94,13 +99,14 @@ public class Loader
                         Team newTeam = new Team().set("name", teamName);
                         division.add(newTeam);
                         newTeam.saveIt();
+                        counter.incrementAndGet();
                         return newTeam;
                     });
                 })
                 .collect(toImmutableList());
     }
 
-    private void loadGame(List<Team> teams, Map<String, String> line)
+    private void loadGame(List<Team> teams, Map<String, String> line, AtomicInteger counter)
     {
         Date date = parseDate(line.get("date"));
         Object homeTeamId = teams.get(0).getId();
@@ -139,7 +145,8 @@ public class Loader
                     .set("away_team_red_cards", line.get("ar"));
 
             newGame.saveIt();
-            loadBets(newGame, line);
+            counter.incrementAndGet();
+            loadBets(newGame, line, counter);
         }
     }
 
@@ -166,14 +173,16 @@ public class Loader
         }
     }
 
-    private void loadBets(Game game, Map<String, String> line)
+    private void loadBets(Game game, Map<String, String> line, AtomicInteger counter)
     {
         PreparedStatement preparedStatement = Base.startBatch(
                 "INSERT INTO bets(bet_vendor_id, bet_type_id, game_id, odds) values(?, ?, ?, ?)");
         for (String betKey : betFactories.keySet()) {
             String odds = line.get(betKey);
             if (odds != null) {
-                betFactories.get(betKey).createIfNotExists(preparedStatement, game, odds);
+                if (betFactories.get(betKey).createIfNotExists(preparedStatement, game, odds)) {
+                    counter.incrementAndGet();
+                }
             }
         }
         Base.executeBatch(preparedStatement);
@@ -187,6 +196,6 @@ public class Loader
 
     private interface BetFactory
     {
-        void createIfNotExists(PreparedStatement preparedStatement, Game game, String odds);
+        boolean createIfNotExists(PreparedStatement preparedStatement, Game game, String odds);
     }
 }
