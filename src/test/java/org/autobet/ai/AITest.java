@@ -16,6 +16,8 @@ package org.autobet.ai;
 
 import org.autobet.TemporaryDatabase;
 import org.autobet.model.Team;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -26,17 +28,41 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class GoalBasedTeamRaterTest
+public class AITest
 {
-    @Rule
-    public TemporaryDatabase temporaryDatabase = TemporaryDatabase.loaded();
+    public static final TemporaryDatabase temporaryDatabase = TemporaryDatabase.loaded();
+
+    @BeforeClass
+    public static void setUp()
+            throws Throwable
+    {
+        temporaryDatabase.before();
+    }
+
+    @AfterClass
+    public static void tearDown()
+            throws Throwable
+    {
+        temporaryDatabase.after();
+    }
 
     @Test
     public void evaluateRandomPlayer()
     {
+        PlayerEvaluator evaluator = new PlayerEvaluator();
+
+        RandomPlayer player = new RandomPlayer();
+        double evaluation = evaluator.evaluate(player, Date.valueOf("2000-01-01"), Date.valueOf("2000-12-31"));
+
+        assertTrue(evaluation < 100);
+    }
+
+    @Test
+    public void goalBasedTeamRater()
+    {
         GoalBasedTeamRater rater = new GoalBasedTeamRater();
 
-        Team team = Team.findFirst("true");
+        Team team = (Team) Team.findAll().get(0);
         assertFalse(rater.rate(team, Date.valueOf("2000-01-01")).isPresent());
         Optional<Integer> rating = rater.rate(team, Date.valueOf("2000-12-31"));
         assertTrue(rating.isPresent());

@@ -67,7 +67,7 @@ public class TemporaryDatabase
     }
 
     @Override
-    protected void before()
+    public void before()
             throws Throwable
     {
         super.before();
@@ -103,7 +103,7 @@ public class TemporaryDatabase
     }
 
     @Override
-    protected void after()
+    public void after()
     {
         connection.close();
         temporaryFolder.delete();

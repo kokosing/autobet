@@ -16,7 +16,6 @@ package org.autobet.ai;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import org.autobet.model.Bet;
 import org.autobet.model.BetType;
 import org.autobet.model.Game;
 import org.javalite.activejdbc.Base;
@@ -59,7 +58,6 @@ public class PlayerEvaluator
 
         double result = 0;
         for (Game game : games) {
-            List<Bet> bets = Bet.find("game_id = ?", game.getId());
             for (Player.Guess guess : player.guess(game)) {
                 boolean won = game.getString("full_time_result").equals(guess.getBetSuffix());
                 if (won) {
