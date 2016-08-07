@@ -75,6 +75,8 @@ class Loader
                 loadGame(teams, line, counter);
             }
         }
+        Division.purgeCache();
+        Team.purgeCache();
         return counter.get();
     }
 
