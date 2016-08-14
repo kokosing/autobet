@@ -18,7 +18,6 @@ import org.autobet.TemporaryDatabase;
 import org.autobet.model.Team;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.sql.Date;
@@ -67,5 +66,14 @@ public class AITest
         Optional<Integer> rating = rater.rate(team, Date.valueOf("2000-12-31"));
         assertTrue(rating.isPresent());
         assertEquals((int) rating.get(), -3);
+    }
+
+    @Test
+    public void testStatsCollector()
+    {
+        TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector();
+
+        TeamRaterStatsCollector.TeamRaterStats raterStats = statsCollector.collect(new GoalBasedTeamRater());
+        assertTrue(raterStats != null);
     }
 }
