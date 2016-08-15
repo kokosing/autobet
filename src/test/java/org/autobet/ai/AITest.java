@@ -74,6 +74,17 @@ public class AITest
         TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector();
 
         TeamRaterStatsCollector.TeamRaterStats raterStats = statsCollector.collect(new GoalBasedTeamRater());
-        assertTrue(raterStats != null);
+
+        assertFalse(raterStats.getAway(1000).isPresent());
+
+        assertEquals(raterStats.getAway(0).get().getCount(), 19);
+        assertEquals(raterStats.getAway(0).get().getWins(), 3);
+        assertEquals(raterStats.getAway(0).get().getLoses(), 9);
+        assertEquals(raterStats.getAway(0).get().getDraws(), 7);
+
+        assertEquals(raterStats.getHome(0).get().getCount(), 19);
+        assertEquals(raterStats.getHome(0).get().getWins(), 11);
+        assertEquals(raterStats.getHome(0).get().getLoses(), 2);
+        assertEquals(raterStats.getHome(0).get().getDraws(), 6);
     }
 }

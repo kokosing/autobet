@@ -14,7 +14,6 @@
 
 package org.autobet.ai;
 
-import com.google.common.collect.ImmutableMap;
 import org.autobet.model.Game;
 import org.autobet.model.Team;
 
@@ -26,9 +25,14 @@ import java.util.Optional;
 
 public class TeamRaterStatsCollector
 {
+    private enum GameResult
+    {
+        WIN, DRAW, LOSE;
+    }
+
     public TeamRaterStats collect(TeamRater teamRater)
     {
-        TeamRaterStatsBuilder statsBuilder = new TeamRaterStatsBuilder();
+        TeamRaterStats stats = new TeamRaterStats();
         List<Game> games = Game.findAll();
         for (Game game : games) {
             Team homeTeam = Team.findById(game.getLong("home_team_id"));
@@ -37,86 +41,97 @@ public class TeamRaterStatsCollector
 
             Optional<Integer> homeTeamRate = teamRater.rate(homeTeam, playedAt);
             Optional<Integer> awayTeamRate = teamRater.rate(awayTeam, playedAt);
-            String fullTimeResult = game.getString("full_time_result");
 
+            String fullTimeResult = game.getString("full_time_result");
             switch (fullTimeResult) {
                 case "H":
-                    homeTeamRate.ifPresent(statsBuilder::incrementHomeWin);
-                    awayTeamRate.ifPresent(statsBuilder::incrementAwayLose);
+                    homeTeamRate.ifPresent(rate -> stats.incrementHome(rate, GameResult.WIN));
+                    awayTeamRate.ifPresent(rate -> stats.incrementAway(rate, GameResult.LOSE));
                     break;
                 case "D":
-                    homeTeamRate.ifPresent(statsBuilder::incrementHomeDraw);
-                    awayTeamRate.ifPresent(statsBuilder::incrementAwayDraw);
+                    homeTeamRate.ifPresent(rate -> stats.incrementHome(rate, GameResult.DRAW));
+                    awayTeamRate.ifPresent(rate -> stats.incrementAway(rate, GameResult.DRAW));
                     break;
                 case "A":
-                    homeTeamRate.ifPresent(statsBuilder::incrementHomeLose);
-                    awayTeamRate.ifPresent(statsBuilder::incrementAwayWin);
+                    homeTeamRate.ifPresent(rate -> stats.incrementHome(rate, GameResult.LOSE));
+                    awayTeamRate.ifPresent(rate -> stats.incrementAway(rate, GameResult.WIN));
                     break;
 
                 default:
                     throw new IllegalStateException("Unknown full time game result: " + fullTimeResult);
             }
         }
-        return statsBuilder.build();
-    }
-
-    private static class TeamRaterStatsBuilder
-    {
-        private final Map<Integer, Integer> homeLoses = new HashMap<>();
-        private final Map<Integer, Integer> homeWins = new HashMap<>();
-        private final Map<Integer, Integer> homeDraws = new HashMap<>();
-        private final Map<Integer, Integer> awayLoses = new HashMap<>();
-        private final Map<Integer, Integer> awayDraws = new HashMap<>();
-        private final Map<Integer, Integer> awayWins = new HashMap<>();
-
-        public void incrementHomeLose(int rate)
-        {
-            increment(homeLoses, rate);
-        }
-
-        public void incrementHomeDraw(int rate)
-        {
-            increment(homeDraws, rate);
-        }
-
-        public void incrementHomeWin(int rate)
-        {
-            increment(homeWins, rate);
-        }
-
-        public void incrementAwayLose(int rate)
-        {
-            increment(awayLoses, rate);
-        }
-
-        public void incrementAwayDraw(int rate)
-        {
-            increment(awayDraws, rate);
-        }
-
-        public void incrementAwayWin(int rate)
-        {
-            increment(awayWins, rate);
-        }
-
-        private Integer increment(Map<Integer, Integer> stats, int rate)
-        {
-            return stats.compute(rate, TeamRaterStatsBuilder::increment);
-        }
-
-        private static int increment(Integer key, Integer value)
-        {
-            return value != null ? value + 1 : 1;
-        }
-
-        public TeamRaterStats build() {
-            //TODO return stats
-            return new TeamRaterStats();
-        }
+        return stats;
     }
 
     public static class TeamRaterStats
     {
+        private final Map<Integer, RateStats> homeStats = new HashMap<>();
+        private final Map<Integer, RateStats> awayStats = new HashMap<>();
 
+        private void incrementHome(int rate, GameResult gameResult)
+        {
+            increment(homeStats, rate, gameResult);
+        }
+
+        private void incrementAway(int rate, GameResult gameResult)
+        {
+            increment(awayStats, rate, gameResult);
+        }
+
+        private void increment(Map<Integer, RateStats> stats, int rate, GameResult gameResult)
+        {
+            if (!stats.containsKey(rate)) {
+                stats.put(rate, new RateStats());
+            }
+            stats.get(rate).increment(gameResult);
+        }
+
+        public Optional<RateStats> getAway(int rate)
+        {
+            return Optional.ofNullable(awayStats.get(rate));
+        }
+
+        public Optional<RateStats> getHome(int rate)
+        {
+            return Optional.ofNullable(homeStats.get(rate));
+        }
+    }
+
+    public static class RateStats
+    {
+        private Map<GameResult, Integer> stats = new HashMap<>();
+
+        private void increment(GameResult result)
+        {
+            stats.compute(result, TeamRaterStatsCollector::increment);
+        }
+
+        public int getCount()
+        {
+            return stats.values().stream()
+                    .reduce((x, y) -> x + y)
+                    .get();
+        }
+
+        public int getWins()
+        {
+            return stats.get(GameResult.WIN);
+        }
+
+        public int getDraws()
+        {
+            return stats.get(GameResult.DRAW);
+        }
+
+        public int getLoses()
+        {
+            return stats.get(GameResult.LOSE);
+        }
+    }
+
+    private static <T> int increment(T key, Integer value)
+    {
+        return value != null ? value + 1 : 1;
     }
 }
