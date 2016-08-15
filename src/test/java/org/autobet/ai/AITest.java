@@ -69,7 +69,7 @@ public class AITest
     }
 
     @Test
-    public void testStatsCollector()
+    public void testStats()
     {
         TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector();
 
@@ -86,5 +86,33 @@ public class AITest
         assertEquals(raterStats.getHome(0).get().getWins(), 11);
         assertEquals(raterStats.getHome(0).get().getLoses(), 2);
         assertEquals(raterStats.getHome(0).get().getDraws(), 6);
+
+        TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(raterStats);
+        assertEquals(approximation.getHomeWinChances(0), 0.9, 0.001);
+        assertEquals(approximation.getHomeLoseChances(0), 0.9, 0.001);
+        assertEquals(approximation.getHomeDrawChances(0), 0.9, 0.001);
+        assertEquals(approximation.getAwayWinChances(0), 0.9, 0.001);
+        assertEquals(approximation.getAwayLoseChances(0), 0.9, 0.001);
+        assertEquals(approximation.getAwayDrawChances(0), 0.9, 0.001);
+
+        // always win
+        assertEquals(approximation.getHomeWinChances(100), 1, 0.001);
+        assertEquals(approximation.getHomeLoseChances(100), 0, 0.001);
+        assertEquals(approximation.getHomeDrawChances(100), 0, 0.001);
+        assertEquals(approximation.getAwayWinChances(100), 1, 0.001);
+        assertEquals(approximation.getAwayLoseChances(100), 0, 0.001);
+        assertEquals(approximation.getAwayDrawChances(100), 0, 0.001);
+
+        // always lose
+        assertEquals(approximation.getHomeWinChances(-100), 0, 0.001);
+        assertEquals(approximation.getHomeLoseChances(-100), 1, 0.001);
+        assertEquals(approximation.getHomeDrawChances(-100), 0, 0.001);
+        assertEquals(approximation.getAwayWinChances(-100), 0, 0.001);
+        assertEquals(approximation.getAwayLoseChances(-100), 1, 0.001);
+        assertEquals(approximation.getAwayDrawChances(-100), 0, 0.001);
+
+
+
+
     }
 }

@@ -14,6 +14,7 @@
 
 package org.autobet.ai;
 
+import com.google.common.collect.ImmutableMap;
 import org.autobet.model.Game;
 import org.autobet.model.Team;
 
@@ -25,7 +26,7 @@ import java.util.Optional;
 
 public class TeamRaterStatsCollector
 {
-    private enum GameResult
+    public enum GameResult
     {
         WIN, DRAW, LOSE;
     }
@@ -96,6 +97,16 @@ public class TeamRaterStatsCollector
         {
             return Optional.ofNullable(homeStats.get(rate));
         }
+
+        public Map<Integer, RateStats> getAwayStats()
+        {
+            return ImmutableMap.copyOf(awayStats);
+        }
+
+        public Map<Integer, RateStats> getHomeStats()
+        {
+            return ImmutableMap.copyOf(homeStats);
+        }
     }
 
     public static class RateStats
@@ -116,17 +127,23 @@ public class TeamRaterStatsCollector
 
         public int getWins()
         {
-            return stats.get(GameResult.WIN);
+            return get(GameResult.WIN);
         }
 
         public int getDraws()
         {
-            return stats.get(GameResult.DRAW);
+            return get(GameResult.DRAW);
         }
 
         public int getLoses()
         {
-            return stats.get(GameResult.LOSE);
+            return get(GameResult.LOSE);
+        }
+
+        public int get(GameResult gameResult)
+        {
+            Integer gameResultStats = stats.get(gameResult);
+            return gameResultStats == null ? 0 : gameResultStats;
         }
     }
 
