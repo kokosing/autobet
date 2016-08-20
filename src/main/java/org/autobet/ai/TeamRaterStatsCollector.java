@@ -33,7 +33,7 @@ public class TeamRaterStatsCollector
 
     public TeamRaterStats collect(TeamRater teamRater)
     {
-        TeamRaterStats stats = new TeamRaterStats();
+        TeamRaterStats.Builder stats = TeamRaterStats.builder();
         List<Game> games = Game.findAll();
         for (Game game : games) {
             Team homeTeam = Team.findById(game.getLong("home_team_id"));
@@ -62,7 +62,7 @@ public class TeamRaterStatsCollector
                     throw new IllegalStateException("Unknown full time game result: " + fullTimeResult);
             }
         }
-        return stats;
+        return stats.build();
     }
 
     public static class TeamRaterStats
@@ -70,22 +70,11 @@ public class TeamRaterStatsCollector
         private final Map<Integer, RateStats> homeStats = new HashMap<>();
         private final Map<Integer, RateStats> awayStats = new HashMap<>();
 
-        private void incrementHome(int rate, GameResult gameResult)
-        {
-            increment(homeStats, rate, gameResult);
+        public static Builder builder() {
+            return new TeamRaterStats().new Builder();
         }
 
-        private void incrementAway(int rate, GameResult gameResult)
-        {
-            increment(awayStats, rate, gameResult);
-        }
-
-        private void increment(Map<Integer, RateStats> stats, int rate, GameResult gameResult)
-        {
-            if (!stats.containsKey(rate)) {
-                stats.put(rate, new RateStats());
-            }
-            stats.get(rate).increment(gameResult);
+        private TeamRaterStats() {
         }
 
         public Optional<RateStats> getAway(int rate)
@@ -106,6 +95,30 @@ public class TeamRaterStatsCollector
         public Map<Integer, RateStats> getHomeStats()
         {
             return ImmutableMap.copyOf(homeStats);
+        }
+
+        public class Builder {
+            public void incrementHome(int rate, GameResult gameResult)
+            {
+                increment(homeStats, rate, gameResult);
+            }
+
+            public void incrementAway(int rate, GameResult gameResult)
+            {
+                increment(awayStats, rate, gameResult);
+            }
+
+            private void increment(Map<Integer, RateStats> stats, int rate, GameResult gameResult)
+            {
+                if (!stats.containsKey(rate)) {
+                    stats.put(rate, new RateStats());
+                }
+                stats.get(rate).increment(gameResult);
+            }
+
+            public TeamRaterStats build() {
+                return TeamRaterStats.this;
+            }
         }
     }
 

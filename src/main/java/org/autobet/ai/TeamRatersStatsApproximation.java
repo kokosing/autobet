@@ -31,7 +31,7 @@ import static org.autobet.ai.TeamRaterStatsCollector.GameResult.WIN;
 
 public class TeamRatersStatsApproximation
 {
-    private static final PolynomialCurveFitter fitter = PolynomialCurveFitter.create(3);
+    private static final PolynomialCurveFitter fitter = PolynomialCurveFitter.create(4);
 
     private final Polynomial homeWinChances;
     private final Polynomial homeLoseChances;
@@ -63,7 +63,7 @@ public class TeamRatersStatsApproximation
             RateStats rateStats = stats.get(rate);
             int stat = rateStats.get(gameResult);
             int count = rateStats.getCount();
-            obs.add(rate, (double) stat / count);
+            obs.add(count, rate, (double) stat / count);
         }
         return new Polynomial(fitter.fit(obs.toList()));
     }
@@ -80,7 +80,7 @@ public class TeamRatersStatsApproximation
 
     public double getHomeDrawChances(int rate)
     {
-        return cap(homeLoseChances.calculate(rate));
+        return cap(homeDrawChances.calculate(rate));
     }
 
     public double getAwayWinChances(int rate)
@@ -95,7 +95,7 @@ public class TeamRatersStatsApproximation
 
     public double getAwayDrawChances(int rate)
     {
-        return cap(awayLoseChances.calculate(rate));
+        return cap(awayDrawChances.calculate(rate));
     }
 
     private double cap(double value)

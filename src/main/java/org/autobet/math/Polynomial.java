@@ -14,6 +14,7 @@
 
 package org.autobet.math;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
 public class Polynomial
@@ -22,13 +23,14 @@ public class Polynomial
 
     public Polynomial(double[] coefficients)
     {
+        checkArgument(coefficients.length > 0, "Empty coefficients table");
         this.coefficients = requireNonNull(coefficients, "coefficients is null");
     }
 
     public double calculate(double x)
     {
-        double result = 0;
-        for (int i = coefficients.length - 1; i >= 0; i--) {
+        double result = coefficients[0];
+        for (int i = 1; i < coefficients.length; i++) {
             result += x * coefficients[i];
             x *= x;
         }
