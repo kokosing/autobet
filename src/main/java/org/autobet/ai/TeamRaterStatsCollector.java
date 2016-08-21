@@ -50,15 +50,12 @@ public class TeamRaterStatsCollector
                 switch (fullTimeResult) {
                     case "H":
                         stats.incrementHome(rateDiff, GameResult.WIN);
-                        stats.incrementAway(rateDiff, GameResult.LOSE);
                         break;
                     case "D":
                         stats.incrementHome(rateDiff, GameResult.DRAW);
-                        stats.incrementAway(rateDiff, GameResult.DRAW);
                         break;
                     case "A":
                         stats.incrementHome(rateDiff, GameResult.LOSE);
-                        stats.incrementAway(rateDiff, GameResult.WIN);
                         break;
 
                     default:
@@ -72,7 +69,6 @@ public class TeamRaterStatsCollector
     public static class TeamRaterStats
     {
         private final Map<Integer, RateStats> homeStats = new HashMap<>();
-        private final Map<Integer, RateStats> awayStats = new HashMap<>();
 
         public static Builder builder() {
             return new TeamRaterStats().new Builder();
@@ -81,19 +77,9 @@ public class TeamRaterStatsCollector
         private TeamRaterStats() {
         }
 
-        public Optional<RateStats> getAway(int rate)
-        {
-            return Optional.ofNullable(awayStats.get(rate));
-        }
-
         public Optional<RateStats> getHome(int rate)
         {
             return Optional.ofNullable(homeStats.get(rate));
-        }
-
-        public Map<Integer, RateStats> getAwayStats()
-        {
-            return ImmutableMap.copyOf(awayStats);
         }
 
         public Map<Integer, RateStats> getHomeStats()
@@ -104,20 +90,10 @@ public class TeamRaterStatsCollector
         public class Builder {
             public void incrementHome(int rate, GameResult gameResult)
             {
-                increment(homeStats, rate, gameResult);
-            }
-
-            public void incrementAway(int rate, GameResult gameResult)
-            {
-                increment(awayStats, rate, gameResult);
-            }
-
-            private void increment(Map<Integer, RateStats> stats, int rate, GameResult gameResult)
-            {
-                if (!stats.containsKey(rate)) {
-                    stats.put(rate, new RateStats());
+                if (!homeStats.containsKey(rate)) {
+                    homeStats.put(rate, new RateStats());
                 }
-                stats.get(rate).increment(gameResult);
+                homeStats.get(rate).increment(gameResult);
             }
 
             public TeamRaterStats build() {

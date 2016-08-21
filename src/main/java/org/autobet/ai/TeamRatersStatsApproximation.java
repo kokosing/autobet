@@ -36,19 +36,12 @@ public class TeamRatersStatsApproximation
     private final Polynomial homeWinChances;
     private final Polynomial homeLoseChances;
     private final Polynomial homeDrawChances;
-    private final Polynomial awayWinChances;
-    private final Polynomial awayLoseChances;
-    private final Polynomial awayDrawChances;
 
     public TeamRatersStatsApproximation(TeamRaterStats teamRaterStats)
     {
         homeWinChances = approximate(teamRaterStats.getHomeStats(), WIN);
         homeLoseChances = approximate(teamRaterStats.getHomeStats(), LOSE);
         homeDrawChances = approximate(teamRaterStats.getHomeStats(), DRAW);
-
-        awayWinChances = approximate(teamRaterStats.getAwayStats(), WIN);
-        awayLoseChances = approximate(teamRaterStats.getAwayStats(), LOSE);
-        awayDrawChances = approximate(teamRaterStats.getAwayStats(), DRAW);
     }
 
     private Polynomial approximate(Map<Integer, RateStats> stats, GameResult gameResult)
@@ -81,21 +74,6 @@ public class TeamRatersStatsApproximation
     public double getHomeDrawChances(int rate)
     {
         return cap(homeDrawChances.calculate(rate));
-    }
-
-    public double getAwayWinChances(int rate)
-    {
-        return cap(awayWinChances.calculate(rate));
-    }
-
-    public double getAwayLoseChances(int rate)
-    {
-        return cap(awayLoseChances.calculate(rate));
-    }
-
-    public double getAwayDrawChances(int rate)
-    {
-        return cap(awayDrawChances.calculate(rate));
     }
 
     private double cap(double value)
