@@ -37,7 +37,14 @@ public class TeamRaterStatsCollector
     {
         TeamRaterStats.Builder stats = TeamRaterStats.builder();
         List<Game> games = Game.findAll();
+        Long gamesCount = Game.count();
+        int i = 0;
         for (Game game : games) {
+            if (i % 10 == 0) {
+                System.out.print("\r" + progress(gamesCount, i));
+            }
+            i++;
+
             Team homeTeam = Team.findById(game.getLong("home_team_id"));
             Team awayTeam = Team.findById(game.getLong("away_team_id"));
             Date playedAt = game.getDate("played_at");
@@ -65,18 +72,27 @@ public class TeamRaterStatsCollector
                 }
             }
         }
+        System.out.println("");
         return stats.build();
+    }
+
+    private String progress(long gamesCount, int i)
+    {
+        int percent = (int) (i * 100 / gamesCount);
+        return String.format("Processed %d out of %d games - %d%%", i, gamesCount, percent);
     }
 
     public static class TeamRaterStats
     {
         private final Map<Integer, RateStats> homeStats = new HashMap<>();
 
-        public static Builder builder() {
+        public static Builder builder()
+        {
             return new TeamRaterStats().new Builder();
         }
 
-        private TeamRaterStats() {
+        private TeamRaterStats()
+        {
         }
 
         public Optional<RateStats> getHome(int rate)
@@ -97,7 +113,8 @@ public class TeamRaterStatsCollector
                     .collect(toImmutableList());
         }
 
-        public class Builder {
+        public class Builder
+        {
             public void incrementHome(int rate, GameResult gameResult)
             {
                 if (!homeStats.containsKey(rate)) {
@@ -106,7 +123,8 @@ public class TeamRaterStatsCollector
                 homeStats.get(rate).increment(gameResult);
             }
 
-            public TeamRaterStats build() {
+            public TeamRaterStats build()
+            {
                 return TeamRaterStats.this;
             }
         }
