@@ -43,23 +43,27 @@ public class TeamRaterStatsCollector
             Optional<Integer> homeTeamRate = teamRater.rate(homeTeam, playedAt);
             Optional<Integer> awayTeamRate = teamRater.rate(awayTeam, playedAt);
 
-            String fullTimeResult = game.getString("full_time_result");
-            switch (fullTimeResult) {
-                case "H":
-                    homeTeamRate.ifPresent(rate -> stats.incrementHome(rate, GameResult.WIN));
-                    awayTeamRate.ifPresent(rate -> stats.incrementAway(rate, GameResult.LOSE));
-                    break;
-                case "D":
-                    homeTeamRate.ifPresent(rate -> stats.incrementHome(rate, GameResult.DRAW));
-                    awayTeamRate.ifPresent(rate -> stats.incrementAway(rate, GameResult.DRAW));
-                    break;
-                case "A":
-                    homeTeamRate.ifPresent(rate -> stats.incrementHome(rate, GameResult.LOSE));
-                    awayTeamRate.ifPresent(rate -> stats.incrementAway(rate, GameResult.WIN));
-                    break;
+            if (homeTeamRate.isPresent() && awayTeamRate.isPresent()) {
+                int rateDiff = homeTeamRate.get() - awayTeamRate.get();
 
-                default:
-                    throw new IllegalStateException("Unknown full time game result: " + fullTimeResult);
+                String fullTimeResult = game.getString("full_time_result");
+                switch (fullTimeResult) {
+                    case "H":
+                        stats.incrementHome(rateDiff, GameResult.WIN);
+                        stats.incrementAway(rateDiff, GameResult.LOSE);
+                        break;
+                    case "D":
+                        stats.incrementHome(rateDiff, GameResult.DRAW);
+                        stats.incrementAway(rateDiff, GameResult.DRAW);
+                        break;
+                    case "A":
+                        stats.incrementHome(rateDiff, GameResult.LOSE);
+                        stats.incrementAway(rateDiff, GameResult.WIN);
+                        break;
+
+                    default:
+                        throw new IllegalStateException("Unknown full time game result: " + fullTimeResult);
+                }
             }
         }
         return stats.build();

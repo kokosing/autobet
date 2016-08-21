@@ -14,7 +14,6 @@
 
 package org.autobet.ai;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.autobet.ai.TeamRaterStatsCollector.GameResult.DRAW;

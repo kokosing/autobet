@@ -77,38 +77,38 @@ public class AITest
 
         assertFalse(raterStats.getAway(1000).isPresent());
 
-        assertEquals(raterStats.getAway(0).get().getCount(), 19);
+        assertEquals(raterStats.getAway(0).get().getCount(), 16);
         assertEquals(raterStats.getAway(0).get().getWins(), 3);
         assertEquals(raterStats.getAway(0).get().getLoses(), 9);
-        assertEquals(raterStats.getAway(0).get().getDraws(), 7);
+        assertEquals(raterStats.getAway(0).get().getDraws(), 4);
 
-        assertEquals(raterStats.getHome(0).get().getCount(), 19);
-        assertEquals(raterStats.getHome(0).get().getWins(), 11);
-        assertEquals(raterStats.getHome(0).get().getLoses(), 2);
-        assertEquals(raterStats.getHome(0).get().getDraws(), 6);
+        assertEquals(raterStats.getHome(0).get().getCount(), 16);
+        assertEquals(raterStats.getHome(0).get().getWins(), 9);
+        assertEquals(raterStats.getHome(0).get().getLoses(), 3);
+        assertEquals(raterStats.getHome(0).get().getDraws(), 4);
 
         TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(raterStats);
-        assertEquals(approximation.getHomeWinChances(0), 0.45, 0.01);
-        assertEquals(approximation.getHomeLoseChances(0), 0.25, 0.01);
+        assertEquals(approximation.getHomeWinChances(0), 0.43, 0.01);
+        assertEquals(approximation.getHomeLoseChances(0), 0.27, 0.01);
         assertEquals(approximation.getHomeDrawChances(0), 0.29, 0.01);
-        assertEquals(approximation.getAwayWinChances(0), 0.23, 0.01);
-        assertEquals(approximation.getAwayLoseChances(0), 0.51, 0.01);
-        assertEquals(approximation.getAwayDrawChances(0), 0.25, 0.01);
+        assertEquals(approximation.getAwayWinChances(0), 0.27, 0.01);
+        assertEquals(approximation.getAwayLoseChances(0), 0.43, 0.01);
+        assertEquals(approximation.getAwayDrawChances(0), 0.29, 0.01);
 
         // always win
         assertEquals(approximation.getHomeWinChances(100), 0, 0.01);
-        assertEquals(approximation.getHomeLoseChances(100), 1, 0.01);
-        assertEquals(approximation.getHomeDrawChances(100), 0, 0.01);
+        assertEquals(approximation.getHomeLoseChances(100), 0, 0.01);
+        assertEquals(approximation.getHomeDrawChances(100), 1, 0.01);
         assertEquals(approximation.getAwayWinChances(100), 0, 0.01);
-        assertEquals(approximation.getAwayLoseChances(100), 1, 0.01);
-        assertEquals(approximation.getAwayDrawChances(100), 0, 0.01);
+        assertEquals(approximation.getAwayLoseChances(100), 0, 0.01);
+        assertEquals(approximation.getAwayDrawChances(100), 1, 0.01);
 
         // always lose
         assertEquals(approximation.getHomeWinChances(-100), 0, 0.01);
-        assertEquals(approximation.getHomeLoseChances(-100), 1, 0.01);
-        assertEquals(approximation.getHomeDrawChances(-100), 0, 0.01);
+        assertEquals(approximation.getHomeLoseChances(-100), 0, 0.01);
+        assertEquals(approximation.getHomeDrawChances(-100), 1, 0.01);
         assertEquals(approximation.getAwayWinChances(-100), 0, 0.01);
-        assertEquals(approximation.getAwayLoseChances(-100), 1, 0.01);
-        assertEquals(approximation.getAwayDrawChances(-100), 0, 0.01);
+        assertEquals(approximation.getAwayLoseChances(-100), 0, 0.01);
+        assertEquals(approximation.getAwayDrawChances(-100), 1, 0.01);
     }
 }
