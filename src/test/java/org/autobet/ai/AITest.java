@@ -83,18 +83,24 @@ public class AITest
         assertEquals(raterStats.getHome(0).get().getDraws(), 4);
 
         TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(raterStats);
+        assertEquals(approximation.getHomeWinChances(-10), 0, 0.01);
+        assertEquals(approximation.getHomeLoseChances(-10), 0, 0.01);
+        assertEquals(approximation.getHomeDrawChances(-10), 1, 0.01);
+
+        assertEquals(approximation.getHomeWinChances(-3), 0.47, 0.01);
+        assertEquals(approximation.getHomeLoseChances(-3), 0.25, 0.01);
+        assertEquals(approximation.getHomeDrawChances(-3), 0.27, 0.01);
+
         assertEquals(approximation.getHomeWinChances(0), 0.43, 0.01);
         assertEquals(approximation.getHomeLoseChances(0), 0.27, 0.01);
         assertEquals(approximation.getHomeDrawChances(0), 0.29, 0.01);
 
-        // always win
-        assertEquals(approximation.getHomeWinChances(100), 0, 0.01);
-        assertEquals(approximation.getHomeLoseChances(100), 0, 0.01);
-        assertEquals(approximation.getHomeDrawChances(100), 1, 0.01);
+        assertEquals(approximation.getHomeWinChances(3), 0.39, 0.01);
+        assertEquals(approximation.getHomeLoseChances(3), 0.27, 0.01);
+        assertEquals(approximation.getHomeDrawChances(3), 0.33, 0.01);
 
-        // always lose
-        assertEquals(approximation.getHomeWinChances(-100), 0, 0.01);
-        assertEquals(approximation.getHomeLoseChances(-100), 0, 0.01);
-        assertEquals(approximation.getHomeDrawChances(-100), 1, 0.01);
+        assertEquals(approximation.getHomeWinChances(10), 0, 0.01);
+        assertEquals(approximation.getHomeLoseChances(10), 0, 0.01);
+        assertEquals(approximation.getHomeDrawChances(10), 1, 0.01);
     }
 }
