@@ -17,6 +17,7 @@ package org.autobet.ai;
 import com.google.common.collect.ImmutableMap;
 import org.autobet.model.Game;
 import org.autobet.model.Team;
+import org.autobet.ui.ProgressBar;
 
 import java.sql.Date;
 import java.util.HashMap;
@@ -37,14 +38,8 @@ public class TeamRaterStatsCollector
     {
         TeamRaterStats.Builder stats = TeamRaterStats.builder();
         List<Game> games = Game.findAll();
-        Long gamesCount = Game.count();
-        int i = 0;
+        ProgressBar progressBar = new ProgressBar(Game.count(), "games");
         for (Game game : games) {
-            if (i % 10 == 0) {
-                System.out.print("\r" + progress(gamesCount, i));
-            }
-            i++;
-
             Team homeTeam = Team.findById(game.getLong("home_team_id"));
             Team awayTeam = Team.findById(game.getLong("away_team_id"));
             Date playedAt = game.getDate("played_at");
@@ -71,15 +66,9 @@ public class TeamRaterStatsCollector
                         throw new IllegalStateException("Unknown full time game result: " + fullTimeResult);
                 }
             }
+            progressBar.increment();
         }
-        System.out.println("");
         return stats.build();
-    }
-
-    private String progress(long gamesCount, int i)
-    {
-        int percent = (int) (i * 100 / gamesCount);
-        return String.format("Processed %d out of %d games - %d%%", i, gamesCount, percent);
     }
 
     public static class TeamRaterStats

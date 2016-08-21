@@ -130,19 +130,21 @@ public final class App
     public static final class StatsCalculatorCommand
             implements Command
     {
-
         @Override
         public void go()
         {
             TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector();
+            long start = currentTimeMillis();
             TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(new GoalBasedTeamRater());
+            long end = currentTimeMillis();
             TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(stats);
+            System.out.println("Stats collection took: " + (end - start) + "ms");
 
             System.out.println("Rate - WINS - DRAWS - LOSES");
             for (int rate : stats.getRates()) {
                 TeamRaterStatsCollector.RateStats rateStats = stats.getHome(rate).get();
                 System.out.println(String.format(
-                        "%4d - %d/%d - %d/%d - %d/%d",
+                        "%4d - %d/%f - %d/%f - %d/%f",
                         rate,
                         rateStats.getWins(), approximation.getHomeWinChances(rate),
                         rateStats.getDraws(), approximation.getHomeDrawChances(rate),
