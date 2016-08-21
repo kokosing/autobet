@@ -16,6 +16,9 @@ package org.autobet;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import org.autobet.ai.GoalBasedTeamRater;
+import org.autobet.ai.TeamRaterStatsCollector;
+import org.autobet.ai.TeamRatersStatsApproximation;
 import org.autobet.ioc.DaggerMainComponent;
 import org.autobet.ioc.DatabaseConnectionModule.DatabaseConnection;
 import org.javalite.activejdbc.Base;
@@ -31,7 +34,8 @@ import static org.autobet.ImmutableCollectors.toImmutableMap;
 
 public final class App
 {
-    private final Map<String, Command> commands = Stream.of(new LoadCommand(), new QueryCommand())
+    private final Map<String, Command> commands = Stream.of(
+            new LoadCommand(), new QueryCommand(), new StatsCalculatorCommand())
             .collect(toImmutableMap(Command::getName));
 
     @Parameter(names = {"--help", "-h"}, help = true)
@@ -119,6 +123,37 @@ public final class App
         public String getName()
         {
             return "query";
+        }
+    }
+
+    @Parameters(commandDescription = "Calculate team rater statistics")
+    public static final class StatsCalculatorCommand
+            implements Command
+    {
+
+        @Override
+        public void go()
+        {
+            TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector();
+            TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(new GoalBasedTeamRater());
+            TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(stats);
+
+            System.out.println("Rate - WINS - DRAWS - LOSES");
+            for (int rate : stats.getRates()) {
+                TeamRaterStatsCollector.RateStats rateStats = stats.getHome(rate).get();
+                System.out.println(String.format(
+                        "%4d - %d/%d - %d/%d - %d/%d",
+                        rate,
+                        rateStats.getWins(), approximation.getHomeWinChances(rate),
+                        rateStats.getDraws(), approximation.getHomeDrawChances(rate),
+                        rateStats.getLoses(), approximation.getHomeLoseChances(rate)));
+            }
+        }
+
+        @Override
+        public String getName()
+        {
+            return "stats";
         }
     }
 

@@ -39,18 +39,16 @@ public class TeamRatersStatsApproximation
 
     public TeamRatersStatsApproximation(TeamRaterStats teamRaterStats)
     {
-        homeWinChances = approximate(teamRaterStats.getHomeStats(), WIN);
-        homeLoseChances = approximate(teamRaterStats.getHomeStats(), LOSE);
-        homeDrawChances = approximate(teamRaterStats.getHomeStats(), DRAW);
+        homeWinChances = approximate(teamRaterStats, WIN);
+        homeLoseChances = approximate(teamRaterStats, LOSE);
+        homeDrawChances = approximate(teamRaterStats, DRAW);
     }
 
-    private Polynomial approximate(Map<Integer, RateStats> stats, GameResult gameResult)
+    private Polynomial approximate(TeamRaterStats teamRaterStats, GameResult gameResult)
     {
+        Map<Integer, RateStats> stats = teamRaterStats.getHomeStats();
+        List<Integer> rates = teamRaterStats.getRates();
         final WeightedObservedPoints obs = new WeightedObservedPoints();
-        List<Integer> rates = stats.keySet()
-                .stream()
-                .sorted()
-                .collect(toImmutableList());
 
         for (int rate : rates) {
             RateStats rateStats = stats.get(rate);

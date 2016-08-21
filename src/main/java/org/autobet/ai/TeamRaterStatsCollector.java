@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.autobet.ImmutableCollectors.toImmutableList;
+
 public class TeamRaterStatsCollector
 {
     public enum GameResult
@@ -85,6 +87,14 @@ public class TeamRaterStatsCollector
         public Map<Integer, RateStats> getHomeStats()
         {
             return ImmutableMap.copyOf(homeStats);
+        }
+
+        public List<Integer> getRates()
+        {
+            return homeStats.keySet()
+                    .stream()
+                    .sorted()
+                    .collect(toImmutableList());
         }
 
         public class Builder {
