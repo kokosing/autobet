@@ -73,7 +73,7 @@ public class AITest
     {
         TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector();
 
-        TeamRaterStatsCollector.TeamRaterStats raterStats = statsCollector.collect(new GoalBasedTeamRater());
+        TeamRaterStatsCollector.TeamRaterStats raterStats = statsCollector.collect(new GoalBasedTeamRater(), -1);
 
         assertFalse(raterStats.getHome(1000).isPresent());
 

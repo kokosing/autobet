@@ -34,12 +34,19 @@ public class TeamRaterStatsCollector
         WIN, DRAW, LOSE;
     }
 
-    public TeamRaterStats collect(TeamRater teamRater)
+    public TeamRaterStats collect(TeamRater teamRater, long limit)
     {
         TeamRaterStats.Builder stats = TeamRaterStats.builder();
         List<Game> games = Game.findAll();
-        ProgressBar progressBar = new ProgressBar(Game.count(), "games");
+        long count = Game.count();
+        if (limit > 0) {
+            count = limit;
+        }
+        ProgressBar progressBar = new ProgressBar(count, "games");
         for (Game game : games) {
+            if (progressBar.getCounter() >= count) {
+                break;
+            }
             Team homeTeam = Team.findById(game.getLong("home_team_id"));
             Team awayTeam = Team.findById(game.getLong("away_team_id"));
             Date playedAt = game.getDate("played_at");

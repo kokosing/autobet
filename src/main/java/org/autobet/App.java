@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.lang.System.currentTimeMillis;
+import static java.lang.System.setOut;
 import static java.util.Objects.requireNonNull;
 import static org.autobet.ImmutableCollectors.toImmutableMap;
 
@@ -130,12 +131,15 @@ public final class App
     public static final class StatsCalculatorCommand
             implements Command
     {
+        @Parameter(names = {"-c", "--max-count"}, description = "number of maximum games to to process (default: unlimited)")
+        private long limit = -1;
         @Override
         public void go()
         {
+            System.out.println(limit);
             TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector();
             long start = currentTimeMillis();
-            TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(new GoalBasedTeamRater());
+            TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(new GoalBasedTeamRater(), limit);
             long end = currentTimeMillis();
             TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(stats);
             System.out.println("Stats collection took: " + (end - start) + "ms");

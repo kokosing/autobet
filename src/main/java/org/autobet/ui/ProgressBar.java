@@ -66,4 +66,9 @@ public class ProgressBar
                 left);
         System.out.print("\r" + msg);
     }
+
+    public long getCounter()
+    {
+        return counter;
+    }
 }
