@@ -57,12 +57,13 @@ public class ProgressBar
         double throughput = (double) counter / sinceStart.getSeconds();
         Duration left = Duration.ofSeconds((long) ((count - counter) / throughput));
         String msg = String.format(
-                "Processed %d out of %d %s - %.2f%%, %.2f per second, %s left                    ",
+                "Processed %d out of %d %s - %.2f%%, %.2f per second, duration %s, %s left                    ",
                 counter,
                 count,
                 itemsName,
                 percent,
                 throughput,
+                sinceStart,
                 left);
         System.out.print("\r" + msg);
     }

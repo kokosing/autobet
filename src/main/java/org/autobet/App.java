@@ -136,7 +136,6 @@ public final class App
         @Override
         public void go()
         {
-            System.out.println(limit);
             TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector();
             long start = currentTimeMillis();
             TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(new GoalBasedTeamRater(), limit);
