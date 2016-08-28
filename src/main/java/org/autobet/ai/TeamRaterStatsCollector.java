@@ -14,81 +14,126 @@
 
 package org.autobet.ai;
 
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.autobet.App;
+import org.autobet.ioc.DaggerMainComponent;
+import org.autobet.ioc.DatabaseConnectionModule.DatabaseConnection;
 import org.autobet.model.Game;
 import org.autobet.model.Team;
 import org.autobet.ui.ProgressBar;
+import org.javalite.activejdbc.Model;
 
 import java.sql.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.IntStream;
 
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.autobet.ImmutableCollectors.toImmutableList;
 
 public class TeamRaterStatsCollector
 {
     public enum GameResult
     {
-        WIN, DRAW, LOSE;
+        WIN, DRAW, LOSE
     }
 
     public TeamRaterStats collect(TeamRater teamRater, long limit)
     {
-        TeamRaterStats.Builder stats = TeamRaterStats.builder();
-        List<Game> games = Game.findAll();
         long count = Game.count();
         if (limit > 0) {
             count = limit;
         }
         ProgressBar progressBar = new ProgressBar(count, "games");
-        for (Game game : games) {
-            if (progressBar.getCounter() >= count) {
-                break;
+
+        Iterator<Model> games = Game.findAll().iterator();
+        List<CompletableFuture<TeamRaterStats>> futures = IntStream.range(0, Runtime.getRuntime().availableProcessors())
+                .mapToObj(i -> supplyAsync(() -> {
+                    try (DatabaseConnection _ = DaggerMainComponent.create().connectToDatabase()) {
+                        TeamRaterStats.Builder stats = TeamRaterStats.builder();
+                        Game game;
+                        while (true) {
+                            synchronized (games) {
+                                if (games.hasNext()) {
+                                    game = (Game) games.next();
+                                }
+                                else {
+                                    break;
+                                }
+                            }
+                            evaluateGame(teamRater, stats, progressBar, game);
+                        }
+                        return stats.build();
+                    }
+                })).collect(toImmutableList());
+
+        TeamRaterStats stats = TeamRaterStats.create();
+        for (CompletableFuture<TeamRaterStats> future : futures) {
+            try {
+                stats = stats.merge(future.get());
             }
-            Team homeTeam = Team.findById(game.getLong("home_team_id"));
-            Team awayTeam = Team.findById(game.getLong("away_team_id"));
-            Date playedAt = game.getDate("played_at");
-
-            Optional<Integer> homeTeamRate = teamRater.rate(homeTeam, playedAt);
-            Optional<Integer> awayTeamRate = teamRater.rate(awayTeam, playedAt);
-
-            if (homeTeamRate.isPresent() && awayTeamRate.isPresent()) {
-                int rateDiff = homeTeamRate.get() - awayTeamRate.get();
-
-                String fullTimeResult = game.getString("full_time_result");
-                switch (fullTimeResult) {
-                    case "H":
-                        stats.incrementHome(rateDiff, GameResult.WIN);
-                        break;
-                    case "D":
-                        stats.incrementHome(rateDiff, GameResult.DRAW);
-                        break;
-                    case "A":
-                        stats.incrementHome(rateDiff, GameResult.LOSE);
-                        break;
-
-                    default:
-                        throw new IllegalStateException("Unknown full time game result: " + fullTimeResult);
-                }
+            catch (InterruptedException | ExecutionException e) {
+                throw Throwables.propagate(e);
             }
-            progressBar.increment();
         }
-        return stats.build();
+        return stats;
+    }
+
+    private void evaluateGame(TeamRater teamRater, TeamRaterStats.Builder stats, ProgressBar progressBar, Game game)
+    {
+        Team homeTeam = Team.findById(game.getLong("home_team_id"));
+        Team awayTeam = Team.findById(game.getLong("away_team_id"));
+        Date playedAt = game.getDate("played_at");
+
+        Optional<Integer> homeTeamRate = teamRater.rate(homeTeam, playedAt);
+        Optional<Integer> awayTeamRate = teamRater.rate(awayTeam, playedAt);
+
+        if (homeTeamRate.isPresent() && awayTeamRate.isPresent()) {
+            int rateDiff = homeTeamRate.get() - awayTeamRate.get();
+
+            String fullTimeResult = game.getString("full_time_result");
+            switch (fullTimeResult) {
+                case "H":
+                    stats.incrementHome(rateDiff, GameResult.WIN);
+                    break;
+                case "D":
+                    stats.incrementHome(rateDiff, GameResult.DRAW);
+                    break;
+                case "A":
+                    stats.incrementHome(rateDiff, GameResult.LOSE);
+                    break;
+
+                default:
+                    throw new IllegalStateException("Unknown full time game result: " + fullTimeResult);
+            }
+        }
+        progressBar.increment();
     }
 
     public static class TeamRaterStats
     {
-        private final Map<Integer, RateStats> homeStats = new HashMap<>();
+        private final Map<Integer, RateStats> homeStats;
+
+        public static TeamRaterStats create()
+        {
+            return builder().build();
+        }
 
         public static Builder builder()
         {
-            return new TeamRaterStats().new Builder();
+            return new Builder();
         }
 
-        private TeamRaterStats()
+        private TeamRaterStats(Map<Integer, RateStats> homeStats)
         {
+            this.homeStats = ImmutableMap.copyOf(homeStats);
         }
 
         public Optional<RateStats> getHome(int rate)
@@ -109,19 +154,40 @@ public class TeamRaterStatsCollector
                     .collect(toImmutableList());
         }
 
-        public class Builder
+        public TeamRaterStats merge(TeamRaterStats other)
         {
-            public void incrementHome(int rate, GameResult gameResult)
-            {
-                if (!homeStats.containsKey(rate)) {
-                    homeStats.put(rate, new RateStats());
+            TeamRaterStats.Builder builder = builder();
+            for (TeamRaterStats stats : ImmutableList.of(this, other)) {
+                for (int rate : stats.homeStats.keySet()) {
+                    RateStats rateStats = stats.homeStats.get(rate);
+                    for (GameResult gameResult : GameResult.values()) {
+                        builder.addHome(rate, gameResult, rateStats.get(gameResult));
+                    }
                 }
-                homeStats.get(rate).increment(gameResult);
+            }
+            return builder.build();
+        }
+
+        public static class Builder
+        {
+            private final Map<Integer, RateStats> homeStats = new HashMap<>();
+
+            public Builder incrementHome(int rate, GameResult gameResult)
+            {
+                return addHome(rate, gameResult, 1);
+            }
+
+            public Builder addHome(int rate, GameResult gameResult, int count)
+            {
+                RateStats value = new RateStats();
+                value.add(gameResult, count);
+                homeStats.merge(rate, value, (left, right) -> left.merge(right));
+                return this;
             }
 
             public TeamRaterStats build()
             {
-                return TeamRaterStats.this;
+                return new TeamRaterStats(homeStats);
             }
         }
     }
@@ -132,7 +198,12 @@ public class TeamRaterStatsCollector
 
         private void increment(GameResult result)
         {
-            stats.compute(result, TeamRaterStatsCollector::increment);
+            add(result, 1);
+        }
+
+        private void add(GameResult result, int count)
+        {
+            stats.compute(result, (key, value) -> value != null ? value + count : 1);
         }
 
         public int getCount()
@@ -162,10 +233,12 @@ public class TeamRaterStatsCollector
             Integer gameResultStats = stats.get(gameResult);
             return gameResultStats == null ? 0 : gameResultStats;
         }
-    }
 
-    private static <T> int increment(T key, Integer value)
-    {
-        return value != null ? value + 1 : 1;
+        public RateStats merge(RateStats other)
+        {
+            other.stats.entrySet()
+                    .forEach(entry -> stats.merge(entry.getKey(), entry.getValue(), (left, right) -> left + right));
+            return this;
+        }
     }
 }

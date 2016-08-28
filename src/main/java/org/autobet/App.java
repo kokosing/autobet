@@ -21,6 +21,7 @@ import org.autobet.ai.TeamRaterStatsCollector;
 import org.autobet.ai.TeamRatersStatsApproximation;
 import org.autobet.ioc.DaggerMainComponent;
 import org.autobet.ioc.DatabaseConnectionModule.DatabaseConnection;
+import org.autobet.ioc.MainComponent;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.DBException;
 
@@ -29,7 +30,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.lang.System.currentTimeMillis;
-import static java.lang.System.setOut;
 import static java.util.Objects.requireNonNull;
 import static org.autobet.ImmutableCollectors.toImmutableMap;
 
@@ -131,8 +131,10 @@ public final class App
     public static final class StatsCalculatorCommand
             implements Command
     {
-        @Parameter(names = {"-c", "--max-count"}, description = "number of maximum games to to process (default: unlimited)")
+        @Parameter(names = {"-c",
+                            "--max-count"}, description = "number of maximum games to to process (default: unlimited)")
         private long limit = -1;
+
         @Override
         public void go()
         {

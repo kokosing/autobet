@@ -14,21 +14,27 @@
 
 package org.autobet.ui;
 
+import net.jcip.annotations.ThreadSafe;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.Temporal;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static com.google.common.base.Preconditions.checkState;
 import static java.time.Instant.now;
 import static java.util.Objects.requireNonNull;
 
+@ThreadSafe
 public class ProgressBar
 {
     private static final Duration REFRESH_PERIOD = Duration.ofMillis(1000);
     private final Temporal start = now();
     private final long count;
     private final String itemsName;
-    private long counter = 0;
-    private Temporal lastDisplayTime = start;
+    private AtomicLong counter = new AtomicLong();
+    private AtomicReference<Temporal> lastDisplayTime = new AtomicReference<>(start);
 
     public ProgressBar(long count, String itemsName)
     {
@@ -38,27 +44,30 @@ public class ProgressBar
 
     public void increment()
     {
-        counter++;
+        checkState(counter.incrementAndGet() < count, "increment called to many times");
         Instant now = now();
-        Duration sinceLastDisplay = Duration.between(lastDisplayTime, now);
+        Temporal localLastDisplayTime = lastDisplayTime.get();
+        Duration sinceLastDisplay = Duration.between(lastDisplayTime.get(), now);
         if (sinceLastDisplay.compareTo(REFRESH_PERIOD) > 0) {
-            lastDisplayTime = now;
-            display(now);
+            if (lastDisplayTime.compareAndSet(localLastDisplayTime, now)) {
+                display(now);
+            }
         }
-        if (counter == count) {
+        if (counter.get() == count) {
             System.out.println("");
         }
     }
 
     private void display(Instant now)
     {
-        double percent = (int) (counter * 100 / count);
+        long localCounter = getCounter();
+        double percent = (int) (localCounter * 100 / count);
         Duration sinceStart = Duration.between(start, now);
-        double throughput = (double) counter / sinceStart.getSeconds();
-        Duration left = Duration.ofSeconds((long) ((count - counter) / throughput));
+        double throughput = (double) localCounter / sinceStart.getSeconds();
+        Duration left = Duration.ofSeconds((long) ((count - localCounter) / throughput));
         String msg = String.format(
                 "Processed %d out of %d %s - %.2f%%, %.2f per second, duration %s, %s left                    ",
-                counter,
+                localCounter,
                 count,
                 itemsName,
                 percent,
@@ -70,6 +79,6 @@ public class ProgressBar
 
     public long getCounter()
     {
-        return counter;
+        return counter.get();
     }
 }
