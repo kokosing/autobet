@@ -43,7 +43,7 @@ public class DataSourceModule
     public DataSource provideDataSource()
     {
         JdbcDataSource dataSource = new JdbcDataSource();
-        dataSource.setURL("jdbc:h2:~/.autobet/autobet");
+        dataSource.setURL("jdbc:h2:~/.autobet/autobet;MULTI_THREADED=TRUE;LOCK_MODE=3");
         dataSource.setUser("sa");
         dataSource.setPassword("sa");
         return dataSource;

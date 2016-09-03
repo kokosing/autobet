@@ -25,7 +25,6 @@ import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.Model;
 
 import java.sql.Date;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
