@@ -53,7 +53,8 @@ public class ProgressBar
                 display(now);
             }
         }
-        if (counter.get() == count) {
+        if (counter.get() >= count) {
+            display(now);
             System.out.println("");
         }
     }

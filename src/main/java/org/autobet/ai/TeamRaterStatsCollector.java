@@ -68,7 +68,8 @@ public class TeamRaterStatsCollector
                                     break;
                                 }
                             }
-                            evaluateGame(teamRater, stats, progressBar, game);
+                            evaluateGame(teamRater, stats, game);
+                            progressBar.increment();
                         }
                         return stats.build();
                     }
@@ -89,7 +90,7 @@ public class TeamRaterStatsCollector
         return stats;
     }
 
-    private void evaluateGame(TeamRater teamRater, TeamRaterStats.Builder stats, ProgressBar progressBar, Game game)
+    private void evaluateGame(TeamRater teamRater, TeamRaterStats.Builder stats, Game game)
     {
         Team homeTeam = Team.findById(game.getLong("home_team_id"));
         Team awayTeam = Team.findById(game.getLong("away_team_id"));
@@ -117,7 +118,6 @@ public class TeamRaterStatsCollector
                     throw new IllegalStateException("Unknown full time game result: " + fullTimeResult);
             }
         }
-        progressBar.increment();
     }
 
     public static class TeamRaterStats
@@ -198,11 +198,6 @@ public class TeamRaterStatsCollector
     public static class RateStats
     {
         private Map<GameResult, Integer> stats = new HashMap<>();
-
-        private void increment(GameResult result)
-        {
-            add(result, 1);
-        }
 
         private void add(GameResult result, int count)
         {
