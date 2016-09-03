@@ -59,7 +59,7 @@ public class TeamRaterStatsCollector
                     try {
                         TeamRaterStats.Builder stats = TeamRaterStats.builder();
                         Game game;
-                        while (true) {
+                        do {
                             synchronized (games) {
                                 if (games.hasNext()) {
                                     game = (Game) games.next();
@@ -69,8 +69,7 @@ public class TeamRaterStatsCollector
                                 }
                             }
                             evaluateGame(teamRater, stats, game);
-                            progressBar.increment();
-                        }
+                        } while(!progressBar.increment());
                         return stats.build();
                     }
                     finally {
@@ -196,11 +195,6 @@ public class TeamRaterStatsCollector
 
     public static class RateStats
     {
-        public static RateStats create()
-        {
-            return builder().build();
-        }
-
         public static Builder builder()
         {
             return new Builder();
@@ -217,7 +211,7 @@ public class TeamRaterStatsCollector
         {
             return stats.values().stream()
                     .reduce((x, y) -> x + y)
-                    .get();
+                    .orElse(0);
         }
 
         public int getWins()
