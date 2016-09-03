@@ -44,7 +44,7 @@ public class ProgressBar
 
     public void increment()
     {
-        checkState(counter.incrementAndGet() < count, "increment called to many times");
+        checkState(counter.incrementAndGet() <= count, "increment called to many times");
         Instant now = now();
         Temporal localLastDisplayTime = lastDisplayTime.get();
         Duration sinceLastDisplay = Duration.between(lastDisplayTime.get(), now);
