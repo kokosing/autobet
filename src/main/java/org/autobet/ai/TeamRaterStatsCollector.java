@@ -25,6 +25,7 @@ import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.Model;
 
 import java.sql.Date;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -182,8 +183,7 @@ public class TeamRaterStatsCollector
 
             public Builder addHome(int rate, GameResult gameResult, int count)
             {
-                RateStats value = new RateStats();
-                value.add(gameResult, count);
+                RateStats value = RateStats.builder().add(gameResult, count).build();
                 homeStats.merge(rate, value, (left, right) -> left.merge(right));
                 return this;
             }
@@ -197,11 +197,21 @@ public class TeamRaterStatsCollector
 
     public static class RateStats
     {
-        private Map<GameResult, Integer> stats = new HashMap<>();
-
-        private void add(GameResult result, int count)
+        public static RateStats create()
         {
-            stats.compute(result, (key, value) -> value != null ? value + count : 1);
+            return builder().build();
+        }
+
+        public static Builder builder()
+        {
+            return new Builder();
+        }
+
+        private final Map<GameResult, Integer> stats;
+
+        public RateStats(Map<GameResult, Integer> stats)
+        {
+            this.stats = ImmutableMap.copyOf(stats);
         }
 
         public int getCount()
@@ -234,9 +244,29 @@ public class TeamRaterStatsCollector
 
         public RateStats merge(RateStats other)
         {
-            other.stats.entrySet()
-                    .forEach(entry -> stats.merge(entry.getKey(), entry.getValue(), (left, right) -> left + right));
-            return this;
+            Builder builder = builder();
+            for (RateStats rateStats : ImmutableList.of(this, other)) {
+                for (GameResult gameResult : GameResult.values()) {
+                    builder.add(gameResult, rateStats.get(gameResult));
+                }
+            }
+            return builder.build();
+        }
+
+        public static class Builder
+        {
+            private Map<GameResult, Integer> stats = new HashMap<>();
+
+            private Builder add(GameResult result, int count)
+            {
+                stats.merge(result, count, (left, right) -> left + right);
+                return this;
+            }
+
+            public RateStats build()
+            {
+                return new RateStats(stats);
+            }
         }
     }
 }
