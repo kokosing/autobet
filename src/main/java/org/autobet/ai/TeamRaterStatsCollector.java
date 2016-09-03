@@ -17,12 +17,11 @@ package org.autobet.ai;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.autobet.App;
-import org.autobet.ioc.DaggerMainComponent;
-import org.autobet.ioc.DatabaseConnectionModule.DatabaseConnection;
+import org.autobet.ioc.MainComponent;
 import org.autobet.model.Game;
 import org.autobet.model.Team;
 import org.autobet.ui.ProgressBar;
+import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.Model;
 
 import java.sql.Date;
@@ -45,7 +44,7 @@ public class TeamRaterStatsCollector
         WIN, DRAW, LOSE
     }
 
-    public TeamRaterStats collect(TeamRater teamRater, long limit)
+    public TeamRaterStats collect(TeamRater teamRater, long limit, MainComponent component)
     {
         long count = Game.count();
         if (limit > 0) {
@@ -56,7 +55,8 @@ public class TeamRaterStatsCollector
         Iterator<Model> games = Game.findAll().iterator();
         List<CompletableFuture<TeamRaterStats>> futures = IntStream.range(0, Runtime.getRuntime().availableProcessors())
                 .mapToObj(i -> supplyAsync(() -> {
-                    try (DatabaseConnection _ = DaggerMainComponent.create().connectToDatabase()) {
+                    Base.open(component.getDataSource());
+                    try {
                         TeamRaterStats.Builder stats = TeamRaterStats.builder();
                         Game game;
                         while (true) {
@@ -71,6 +71,9 @@ public class TeamRaterStatsCollector
                             evaluateGame(teamRater, stats, progressBar, game);
                         }
                         return stats.build();
+                    }
+                    finally {
+                        Base.close();
                     }
                 })).collect(toImmutableList());
 

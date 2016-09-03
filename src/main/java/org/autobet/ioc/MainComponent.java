@@ -17,10 +17,13 @@ package org.autobet.ioc;
 import dagger.Component;
 
 import javax.inject.Singleton;
+import javax.sql.DataSource;
 
 @Singleton
 @Component(modules = {DataSourceModule.class, DatabaseConnectionModule.class})
 public interface MainComponent
 {
     DatabaseConnectionModule.DatabaseConnection connectToDatabase();
+
+    DataSource getDataSource();
 }

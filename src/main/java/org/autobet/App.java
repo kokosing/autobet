@@ -62,8 +62,9 @@ public final class App
 
     private void start(JCommander jc)
     {
-        try (DatabaseConnection _ = DaggerMainComponent.create().connectToDatabase()) {
-            commands.get(jc.getParsedCommand()).go();
+        MainComponent mainComponent = DaggerMainComponent.create();
+        try (DatabaseConnection connection = mainComponent.connectToDatabase()) {
+            commands.get(jc.getParsedCommand()).go(mainComponent);
         }
     }
 
@@ -75,7 +76,7 @@ public final class App
         private List<String> csvFiles;
 
         @Override
-        public void go()
+        public void go(MainComponent component)
         {
             Loader loader = new Loader();
             for (String csvFile : csvFiles) {
@@ -109,7 +110,7 @@ public final class App
         private List<String> queries;
 
         @Override
-        public void go()
+        public void go(MainComponent component)
         {
             requireNonNull(queries, "queries is null");
             for (String query : queries) {
@@ -136,11 +137,12 @@ public final class App
         private long limit = -1;
 
         @Override
-        public void go()
+        public void go(MainComponent component)
         {
             TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector();
             long start = currentTimeMillis();
-            TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(new GoalBasedTeamRater(), limit);
+            GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
+            TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(teamRater, limit, component);
             long end = currentTimeMillis();
             TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(stats);
             System.out.println("Stats collection took: " + (end - start) + "ms");
@@ -166,7 +168,7 @@ public final class App
 
     interface Command
     {
-        void go();
+        void go(MainComponent component);
 
         String getName();
     }

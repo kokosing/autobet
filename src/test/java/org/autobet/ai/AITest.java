@@ -15,6 +15,7 @@
 package org.autobet.ai;
 
 import org.autobet.TemporaryDatabase;
+import org.autobet.ai.TeamRaterStatsCollector.TeamRaterStats;
 import org.autobet.model.Team;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -73,7 +74,8 @@ public class AITest
     {
         TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector();
 
-        TeamRaterStatsCollector.TeamRaterStats raterStats = statsCollector.collect(new GoalBasedTeamRater(), -1);
+        GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
+        TeamRaterStats raterStats = statsCollector.collect(teamRater, -1, temporaryDatabase.getComponent());
 
         assertFalse(raterStats.getHome(1000).isPresent());
 

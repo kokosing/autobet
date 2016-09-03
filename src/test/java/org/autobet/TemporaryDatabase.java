@@ -31,6 +31,7 @@ package org.autobet;
 import org.autobet.ioc.DaggerMainComponent;
 import org.autobet.ioc.DataSourceModule;
 import org.autobet.ioc.DatabaseConnectionModule;
+import org.autobet.ioc.MainComponent;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
@@ -50,6 +51,7 @@ public class TemporaryDatabase
     private final TemporaryFolder temporaryFolder = new TemporaryFolder();
     private final boolean load;
     private DatabaseConnectionModule.DatabaseConnection connection;
+    private MainComponent mainComponent;
 
     public static TemporaryDatabase loaded()
     {
@@ -72,7 +74,7 @@ public class TemporaryDatabase
     {
         super.before();
         temporaryFolder.create();
-        connection = DaggerMainComponent.builder().dataSourceModule(new DataSourceModule()
+        mainComponent = DaggerMainComponent.builder().dataSourceModule(new DataSourceModule()
         {
             @Override
             public DataSource provideDataSource()
@@ -83,7 +85,8 @@ public class TemporaryDatabase
                 dataSource.setPassword("sa");
                 return dataSource;
             }
-        }).build().connectToDatabase();
+        }).build();
+        connection = mainComponent.connectToDatabase();
 
         if (load) {
             Loader loader = new Loader();
@@ -108,5 +111,10 @@ public class TemporaryDatabase
         connection.close();
         temporaryFolder.delete();
         super.after();
+    }
+
+    public MainComponent getComponent()
+    {
+        return mainComponent;
     }
 }
