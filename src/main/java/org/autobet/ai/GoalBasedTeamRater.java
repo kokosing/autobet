@@ -17,6 +17,7 @@ package org.autobet.ai;
 import org.autobet.model.Team;
 import org.javalite.activejdbc.Base;
 
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +45,7 @@ public class GoalBasedTeamRater
                         "FROM games " +
                         "WHERE ? IN (home_team_id, away_team_id) and played_at < ? " +
                         "ORDER BY played_at DESC " +
-                        "LIMIT ?)",
+                        "LIMIT ?) tmp",
                 team.getId(),
                 date,
                 6);
@@ -57,9 +58,9 @@ public class GoalBasedTeamRater
             return Optional.empty();
         }
 
-        long totalScored = (long) rating.get("total_scored");
-        long totalLost = (long) rating.get("total_lost");
+        BigDecimal totalScored = (BigDecimal) rating.get("total_scored");
+        BigDecimal totalLost = (BigDecimal) rating.get("total_lost");
 
-        return Optional.of(toIntExact(totalScored - totalLost));
+        return Optional.of(toIntExact(totalScored.subtract(totalLost).longValue()));
     }
 }

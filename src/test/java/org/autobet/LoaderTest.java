@@ -69,11 +69,11 @@ public class LoaderTest
         assertEquals(game.get("id"), 1L);
         assertEquals(game.get("home_team_id"), 1L);
         assertEquals(game.get("away_team_id"), 2L);
-        assertEquals(game.get("full_time_home_team_goals"), (byte) 1);
-        assertEquals(game.get("full_time_away_team_goals"), (byte) 2);
+        assertEquals(game.get("full_time_home_team_goals"), 1);
+        assertEquals(game.get("full_time_away_team_goals"), 2);
         assertEquals(game.get("full_time_result"), "A");
-        assertEquals(game.get("half_time_home_team_goals"), (byte) 1);
-        assertEquals(game.get("half_time_away_team_goals"), (byte) 1);
+        assertEquals(game.get("half_time_home_team_goals"), 1);
+        assertEquals(game.get("half_time_away_team_goals"), 1);
         assertEquals(game.get("half_time_result"), "D");
         assertEquals(game.get("played_at"), new Date(new GregorianCalendar(2000, 7, 12).getTime().getTime()));
 

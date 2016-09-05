@@ -1,11 +1,13 @@
 CREATE TABLE divisions (
     id bigint auto_increment,
-    name varchar(8));
+    name varchar(8),
+    primary key (id));
 
 CREATE TABLE teams (
     id bigint auto_increment,
     division_id bigint,
-    name varchar(128));
+    name varchar(128),
+    primary key (id));
 
 CREATE TABLE games (
     id bigint auto_increment,
@@ -39,7 +41,8 @@ CREATE TABLE games (
     home_team_yellow_cards tinyint,
     away_team_yellow_cards tinyint,
     home_team_red_cards tinyint,
-    away_team_red_cards tinyint);
+    away_team_red_cards tinyint,
+    primary key (id));
 
 CREATE INDEX games_load_index ON games (home_team_id, away_team_id, played_at);
 
@@ -47,7 +50,8 @@ CREATE TABLE bet_types (
     id bigint auto_increment,
     name varchar(128),
     expression varchar(2048),
-    bet_suffix varchar(4));
+    bet_suffix varchar(4),
+    primary key (id));
 
 INSERT INTO bet_types VALUES
     (1, 'full_time_home_win', 'full_time_home_team_goals > full_time_away_team_goals', 'H'),
@@ -57,7 +61,8 @@ INSERT INTO bet_types VALUES
 CREATE TABLE bet_vendors (
     id bigint auto_increment,
     name varchar(128),
-    bet_prefix varchar(16));
+    bet_prefix varchar(16),
+    primary key (id));
 
 INSERT INTO bet_vendors VALUES
     (1, 'Bet365', 'B365'),
@@ -79,6 +84,7 @@ CREATE TABLE bets (
     bet_vendor_id bigint,
     bet_type_id bigint,
     game_id bigint,
-    odds decimal(10,4));
+    odds decimal(10,4),
+    primary key (id));
 
 CREATE INDEX bets_by_game_index ON bets (game_id);
