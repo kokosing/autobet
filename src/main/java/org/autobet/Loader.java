@@ -67,6 +67,7 @@ class Loader
 
     int load(String csvFile)
     {
+        Base.openTransaction();
         AtomicInteger counter = new AtomicInteger();
         try (CsvFileReader csvFileReader = new CsvFileReader(csvFile)) {
             for (Map<String, String> line : csvFileReader) {
@@ -75,6 +76,7 @@ class Loader
                 loadGame(teams, line, counter);
             }
         }
+        Base.commitTransaction();
         Division.purgeCache();
         Team.purgeCache();
         return counter.get();
