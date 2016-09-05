@@ -44,8 +44,8 @@ public class DataSourceModule
     {
         // TODO make below configuration to be configurable
         MysqlDataSource dataSource = new MysqlDataSource();
-        dataSource.setURL("jdbc:mysql://localhost/mysql");
-        dataSource.setUser("mysql");
+        dataSource.setURL("jdbc:mysql://localhost/autobet");
+        dataSource.setUser("root");
         dataSource.setPassword("mysql");
         return dataSource;
     }
