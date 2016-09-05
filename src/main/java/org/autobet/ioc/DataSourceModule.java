@@ -28,9 +28,9 @@
 
 package org.autobet.ioc;
 
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import dagger.Module;
 import dagger.Provides;
-import org.h2.jdbcx.JdbcDataSource;
 
 import javax.inject.Singleton;
 import javax.sql.DataSource;
@@ -42,10 +42,11 @@ public class DataSourceModule
     @Provides
     public DataSource provideDataSource()
     {
-        JdbcDataSource dataSource = new JdbcDataSource();
-        dataSource.setURL("jdbc:h2:~/.autobet/autobet;MULTI_THREADED=TRUE;LOCK_MODE=3");
-        dataSource.setUser("sa");
-        dataSource.setPassword("sa");
+        // TODO make below configuration to be configurable
+        MysqlDataSource dataSource = new MysqlDataSource();
+        dataSource.setURL("jdbc:mysql://localhost/mysql");
+        dataSource.setUser("mysql");
+        dataSource.setPassword("mysql");
         return dataSource;
     }
 }

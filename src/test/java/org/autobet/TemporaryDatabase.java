@@ -28,27 +28,24 @@
 
 package org.autobet;
 
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import org.autobet.ioc.DaggerMainComponent;
 import org.autobet.ioc.DataSourceModule;
 import org.autobet.ioc.DatabaseConnectionModule;
 import org.autobet.ioc.MainComponent;
-import org.h2.jdbcx.JdbcDataSource;
 import org.junit.rules.ExternalResource;
-import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.MySQLContainer;
 
 import javax.sql.DataSource;
-
-import java.io.File;
-import java.io.IOException;
 
 public class TemporaryDatabase
         extends ExternalResource
 {
     private static final Logger log = LoggerFactory.getLogger(TemporaryDatabase.class);
 
-    private final TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private final MySQLContainer mySQLContainer = new MySQLContainer();
     private final boolean load;
     private DatabaseConnectionModule.DatabaseConnection connection;
     private MainComponent mainComponent;
@@ -73,16 +70,16 @@ public class TemporaryDatabase
             throws Throwable
     {
         super.before();
-        temporaryFolder.create();
+        mySQLContainer.start();
         mainComponent = DaggerMainComponent.builder().dataSourceModule(new DataSourceModule()
         {
             @Override
             public DataSource provideDataSource()
             {
-                JdbcDataSource dataSource = new JdbcDataSource();
-                dataSource.setURL("jdbc:h2:" + newFile().getAbsolutePath());
-                dataSource.setUser("sa");
-                dataSource.setPassword("sa");
+                MysqlDataSource dataSource = new MysqlDataSource();
+                dataSource.setURL(mySQLContainer.getJdbcUrl());
+                dataSource.setUser(mySQLContainer.getUsername());
+                dataSource.setPassword(mySQLContainer.getPassword());
                 return dataSource;
             }
         }).build();
@@ -95,21 +92,11 @@ public class TemporaryDatabase
         }
     }
 
-    private File newFile()
-    {
-        try {
-            return temporaryFolder.newFile();
-        }
-        catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     @Override
     public void after()
     {
         connection.close();
-        temporaryFolder.delete();
+        mySQLContainer.stop();
         super.after();
     }
 
