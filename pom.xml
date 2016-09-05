@@ -2,12 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>io.airlift</groupId>
-        <artifactId>airbase</artifactId>
-        <version>54</version>
-    </parent>
-
     <groupId>org.autobet</groupId>
     <artifactId>autobet</artifactId>
     <version>0.1-SNAPSHOT</version>
@@ -32,20 +26,6 @@
         <url>https://github.com/kokosing/autobet</url>
         <tag>HEAD</tag>
     </scm>
-
-    <properties>
-        <air.main.basedir>${project.basedir}</air.main.basedir>
-
-        <air.check.skip-extended>true</air.check.skip-extended>
-        <air.check.skip-license>false</air.check.skip-license>
-
-        <air.check.fail-checkstyle>true</air.check.fail-checkstyle>
-        <air.check.skip-checkstyle>false</air.check.skip-checkstyle>
-        <air.check.fail-dependency>false</air.check.fail-dependency>
-
-        <air.java.version>1.8.0-31</air.java.version>
-        <air.maven.version>3.0.5</air.maven.version>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -122,6 +102,16 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
