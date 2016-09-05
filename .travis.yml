@@ -1,6 +1,10 @@
 language: java
+sudo: required
+dist: trusty
 jdk:
     - oraclejdk8
+services:
+  - docker
 notifications:
     email:
     recipients:
