@@ -39,13 +39,15 @@ public class GoalBasedTeamRater
         List<Map> ratings = Base.findAll(
                 "SELECT count(*) AS count, sum(scored) AS total_scored, sum(lost) AS total_lost FROM (" +
                         "SELECT CASE home_team_id " +
-                        "WHEN true THEN full_time_home_team_goals ELSE full_time_away_team_goals END AS scored," +
+                        "WHEN ? THEN full_time_home_team_goals ELSE full_time_away_team_goals END AS scored," +
                         "CASE home_team_id " +
-                        "WHEN true THEN full_time_away_team_goals ELSE full_time_home_team_goals END AS lost " +
+                        "WHEN ? THEN full_time_away_team_goals ELSE full_time_home_team_goals END AS lost " +
                         "FROM games " +
                         "WHERE ? IN (home_team_id, away_team_id) and played_at < ? " +
                         "ORDER BY played_at DESC " +
                         "LIMIT ?) tmp",
+                team.getId(),
+                team.getId(),
                 team.getId(),
                 date,
                 6);
