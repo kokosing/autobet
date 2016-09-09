@@ -17,8 +17,7 @@ package org.autobet.ai;
 import org.autobet.TemporaryDatabase;
 import org.autobet.ai.TeamRaterStatsCollector.TeamRaterStats;
 import org.autobet.model.Team;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.sql.Date;
@@ -30,21 +29,8 @@ import static org.junit.Assert.assertTrue;
 
 public class AITest
 {
+    @ClassRule
     public static final TemporaryDatabase temporaryDatabase = TemporaryDatabase.loaded();
-
-    @BeforeClass
-    public static void setUp()
-            throws Throwable
-    {
-        temporaryDatabase.before();
-    }
-
-    @AfterClass
-    public static void tearDown()
-            throws Throwable
-    {
-        temporaryDatabase.after();
-    }
 
     @Test
     public void evaluateRandomPlayer()

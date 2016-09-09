@@ -88,3 +88,10 @@ CREATE TABLE bets (
     primary key (id));
 
 CREATE INDEX bets_by_game_index ON bets (game_id);
+
+CREATE TABLE key_value_store_entries (
+    id bigint auto_increment,
+    created_at timestamp,
+    _key varchar(128),
+    _value text,
+    primary key (id));
