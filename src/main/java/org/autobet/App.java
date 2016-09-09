@@ -27,6 +27,7 @@ import org.javalite.activejdbc.DBException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.lang.System.currentTimeMillis;
@@ -134,7 +135,7 @@ public final class App
     {
         @Parameter(names = {"-c",
                             "--max-count"}, description = "number of maximum games to to process (default: unlimited)")
-        private long limit = -1;
+        private int limit = -1;
 
         @Override
         public void go(MainComponent component)
@@ -142,7 +143,7 @@ public final class App
             TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector();
             long start = currentTimeMillis();
             GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
-            TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(teamRater, limit, component);
+            TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(teamRater, getLimit(), component);
             long end = currentTimeMillis();
             TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(stats);
             System.out.println("Stats collection took: " + (end - start) + "ms");
@@ -157,6 +158,14 @@ public final class App
                         rateStats.getDraws(), approximation.getHomeDrawChances(rate),
                         rateStats.getLoses(), approximation.getHomeLoseChances(rate)));
             }
+        }
+
+        private Optional<Integer> getLimit()
+        {
+            if (limit > 0) {
+                return Optional.of(limit);
+            }
+            return Optional.empty();
         }
 
         @Override

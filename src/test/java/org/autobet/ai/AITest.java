@@ -70,12 +70,21 @@ public class AITest
     }
 
     @Test
+    public void testStatsWithLimit()
+    {
+        TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector();
+        GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
+        TeamRaterStats raterStats = statsCollector.collect(teamRater, Optional.of(100), temporaryDatabase.getComponent());
+        assertEquals(raterStats.getCount(), 46);
+    }
+
+    @Test
     public void testStats()
     {
         TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector();
-
         GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
-        TeamRaterStats raterStats = statsCollector.collect(teamRater, -1, temporaryDatabase.getComponent());
+        TeamRaterStats raterStats = statsCollector.collect(teamRater, Optional.empty(), temporaryDatabase.getComponent());
+        assertEquals(raterStats.getCount(), 252);
 
         assertFalse(raterStats.getHome(1000).isPresent());
 

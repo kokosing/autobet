@@ -14,9 +14,19 @@
 
 package org.autobet.model;
 
+import org.javalite.activejdbc.LazyList;
 import org.javalite.activejdbc.Model;
+
+import java.util.Optional;
 
 public class Game
         extends Model
 {
+    public static LazyList<Game> findAll(Optional<Integer> limit)
+    {
+        if (limit.isPresent()) {
+            return Game.findBySQL("SELECT * FROM games LIMIT ?", limit.get());
+        }
+        return Game.findAll();
+    }
 }

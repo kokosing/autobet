@@ -22,7 +22,6 @@ import org.autobet.model.Game;
 import org.autobet.model.Team;
 import org.autobet.ui.ProgressBar;
 import org.javalite.activejdbc.Base;
-import org.javalite.activejdbc.Model;
 
 import java.sql.Date;
 import java.util.HashMap;
@@ -44,32 +43,33 @@ public class TeamRaterStatsCollector
         WIN, DRAW, LOSE
     }
 
-    public TeamRaterStats collect(TeamRater teamRater, long limit, MainComponent component)
+    public TeamRaterStats collect(TeamRater teamRater, Optional<Integer> limit, MainComponent component)
     {
         long count = Game.count();
-        if (limit > 0) {
-            count = limit;
+        if (limit.isPresent() && limit.get() < count) {
+            count = limit.get();
         }
         ProgressBar progressBar = new ProgressBar(count, "games");
 
-        Iterator<Model> games = Game.findAll().iterator();
+        Iterator<Game> games = Game.findAll(limit).iterator();
         List<CompletableFuture<TeamRaterStats>> futures = IntStream.range(0, Runtime.getRuntime().availableProcessors())
                 .mapToObj(i -> supplyAsync(() -> {
                     Base.open(component.getDataSource());
                     try {
                         TeamRaterStats.Builder stats = TeamRaterStats.builder();
                         Game game;
-                        do {
+                        while (true) {
                             synchronized (games) {
                                 if (games.hasNext()) {
-                                    game = (Game) games.next();
+                                    game = games.next();
                                 }
                                 else {
                                     break;
                                 }
                             }
                             evaluateGame(teamRater, stats, game);
-                        } while(!progressBar.increment());
+                            progressBar.increment();
+                        }
                         return stats.build();
                     }
                     finally {
@@ -156,6 +156,14 @@ public class TeamRaterStatsCollector
                     .collect(toImmutableList());
         }
 
+        public int getCount()
+        {
+            return getRates().stream()
+                    .map(rate -> homeStats.get(rate).getCount())
+                    .reduce((x, y) -> x + y)
+                    .orElse(0);
+        }
+
         public TeamRaterStats merge(TeamRaterStats other)
         {
             TeamRaterStats.Builder builder = builder();
@@ -182,7 +190,7 @@ public class TeamRaterStatsCollector
             public Builder addHome(int rate, GameResult gameResult, int count)
             {
                 RateStats value = RateStats.builder().add(gameResult, count).build();
-                homeStats.merge(rate, value, (left, right) -> left.merge(right));
+                homeStats.merge(rate, value, RateStats::merge);
                 return this;
             }
 

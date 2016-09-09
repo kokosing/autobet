@@ -22,6 +22,7 @@ import java.time.temporal.Temporal;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.google.common.base.Preconditions.checkState;
 import static java.time.Instant.now;
 import static java.util.Objects.requireNonNull;
 
@@ -41,9 +42,9 @@ public class ProgressBar
         this.itemsName = requireNonNull(itemsName, "itemsName is null");
     }
 
-    public boolean increment()
+    public void increment()
     {
-        counter.incrementAndGet();
+        checkState(counter.incrementAndGet() <= count, "increment called to many times");
         Instant now = now();
         Temporal localLastDisplayTime = lastDisplayTime.get();
         Duration sinceLastDisplay = Duration.between(lastDisplayTime.get(), now);
@@ -55,9 +56,7 @@ public class ProgressBar
         if (counter.get() >= count) {
             display(now);
             System.out.println("");
-            return true;
         }
-        return false;
     }
 
     private void display(Instant now)
