@@ -17,6 +17,7 @@ package org.autobet.ai;
 import org.autobet.TemporaryDatabase;
 import org.autobet.ai.TeamRaterStatsCollector.TeamRaterStats;
 import org.autobet.model.Team;
+import org.autobet.util.GamesProcessorDriver;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -58,13 +59,14 @@ public class AITest
     @Test
     public void testStats()
     {
-        TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector();
+        GamesProcessorDriver gamesProcessorDriver = new GamesProcessorDriver(temporaryDatabase.getComponent());
         GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
+        TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(gamesProcessorDriver, teamRater);
 
-        TeamRaterStats raterStats = statsCollector.collect(teamRater, Optional.of(100), temporaryDatabase.getComponent());
+        TeamRaterStats raterStats = statsCollector.collect(Optional.of(100));
         assertEquals(raterStats.getCount(), 46);
 
-        raterStats = statsCollector.collect(teamRater, Optional.of(300), temporaryDatabase.getComponent());
+        raterStats = statsCollector.collect(Optional.of(300));
         assertEquals(raterStats.getCount(), 252);
 
         assertFalse(raterStats.getHome(1000).isPresent());

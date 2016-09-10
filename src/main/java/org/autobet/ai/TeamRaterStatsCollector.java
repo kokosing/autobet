@@ -17,28 +17,18 @@ package org.autobet.ai;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.primitives.Ints;
-import org.autobet.ioc.MainComponent;
 import org.autobet.model.Game;
 import org.autobet.model.Team;
-import org.autobet.ui.ProgressBar;
-import org.autobet.util.KeyValueStore;
-import org.javalite.activejdbc.Base;
+import org.autobet.util.GamesProcessorDriver;
 
 import java.sql.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.IntStream;
 
-import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.autobet.ImmutableCollectors.toImmutableList;
 
 public class TeamRaterStatsCollector
@@ -48,127 +38,66 @@ public class TeamRaterStatsCollector
         WIN, DRAW, LOSE
     }
 
-    public TeamRaterStats collect(TeamRater teamRater, Optional<Integer> limit, MainComponent component)
+    private final GamesProcessorDriver gamesProcessorDriver;
+    private final TeamRater teamRater;
+
+    public TeamRaterStatsCollector(GamesProcessorDriver gamesProcessorDriver, TeamRater teamRater)
     {
-        String storeKey = TeamRaterStatsCollector.class.getName();
-        Optional<CollectionResult> cachedCollectionResult = KeyValueStore.loadLatest(storeKey, CollectionResult.class);
-
-        int startGame = 0;
-        if (cachedCollectionResult.isPresent()) {
-            startGame = cachedCollectionResult.get().gamesProcessed;
-        }
-
-        long count = Game.count() - startGame;
-        if (limit.isPresent() && limit.get() < count) {
-            count = limit.get();
-        }
-        ProgressBar progressBar = new ProgressBar(count, "games");
-
-        Iterator<Game> games = Game.findAll(startGame, limit).iterator();
-        List<CompletableFuture<TeamRaterStats>> futures = IntStream.range(0, Runtime.getRuntime().availableProcessors())
-                .mapToObj(i -> supplyAsync(() -> {
-                    Base.open(component.getDataSource());
-                    try {
-                        TeamRaterStats.Builder stats = TeamRaterStats.builder();
-                        Game game;
-                        while (true) {
-                            synchronized (games) {
-                                if (games.hasNext()) {
-                                    game = games.next();
-                                }
-                                else {
-                                    break;
-                                }
-                            }
-                            evaluateGame(teamRater, stats, game);
-                            progressBar.increment();
-                        }
-                        return stats.build();
-                    }
-                    finally {
-                        Base.close();
-                    }
-                })).collect(toImmutableList());
-
-        TeamRaterStats stats = cachedCollectionResult.map(CollectionResult::getTeamRaterStats)
-                .orElse(TeamRaterStats.create());
-        for (CompletableFuture<TeamRaterStats> future : futures) {
-            try {
-                stats = stats.merge(future.get());
-            }
-            catch (InterruptedException | ExecutionException e) {
-                throw Throwables.propagate(e);
-            }
-        }
-        KeyValueStore.store(storeKey, new CollectionResult(Ints.checkedCast(startGame + count), stats));
-        return stats;
+        this.gamesProcessorDriver = gamesProcessorDriver;
+        this.teamRater = teamRater;
     }
 
-    private void evaluateGame(TeamRater teamRater, TeamRaterStats.Builder stats, Game game)
+    public TeamRaterStats collect(Optional<Integer> limit)
     {
-        Team homeTeam = Team.findById(game.getLong("home_team_id"));
-        Team awayTeam = Team.findById(game.getLong("away_team_id"));
-        Date playedAt = game.getDate("played_at");
-
-        Optional<Integer> homeTeamRate = teamRater.rate(homeTeam, playedAt);
-        Optional<Integer> awayTeamRate = teamRater.rate(awayTeam, playedAt);
-
-        if (homeTeamRate.isPresent() && awayTeamRate.isPresent()) {
-            int rateDiff = homeTeamRate.get() - awayTeamRate.get();
-
-            String fullTimeResult = game.getString("full_time_result");
-            switch (fullTimeResult) {
-                case "H":
-                    stats.incrementHome(rateDiff, GameResult.WIN);
-                    break;
-                case "D":
-                    stats.incrementHome(rateDiff, GameResult.DRAW);
-                    break;
-                case "A":
-                    stats.incrementHome(rateDiff, GameResult.LOSE);
-                    break;
-
-                default:
-                    throw new IllegalStateException("Unknown full time game result: " + fullTimeResult);
-            }
-        }
+        return gamesProcessorDriver.driveProcessors(GameProcessor::new, TeamRaterStats::merge, limit);
     }
 
-    public static class CollectionResult
+    private class GameProcessor
+            implements GamesProcessorDriver.GamesProcessor<TeamRaterStats>
     {
-        private final int gamesProcessed;
-        private final TeamRaterStats teamRaterStats;
+        private final TeamRaterStats.Builder builder = TeamRaterStats.builder();
 
-        @JsonCreator
-        public CollectionResult(
-                @JsonProperty("gamesProcessed") int gamesProcessed,
-                @JsonProperty("teamRaterStats") TeamRaterStats teamRaterStats)
+        @Override
+        public void process(Game game)
         {
-            this.gamesProcessed = gamesProcessed;
-            this.teamRaterStats = teamRaterStats;
+            Team homeTeam = Team.findById(game.getLong("home_team_id"));
+            Team awayTeam = Team.findById(game.getLong("away_team_id"));
+            Date playedAt = game.getDate("played_at");
+
+            Optional<Integer> homeTeamRate = teamRater.rate(homeTeam, playedAt);
+            Optional<Integer> awayTeamRate = teamRater.rate(awayTeam, playedAt);
+
+            if (homeTeamRate.isPresent() && awayTeamRate.isPresent()) {
+                int rateDiff = homeTeamRate.get() - awayTeamRate.get();
+
+                String fullTimeResult = game.getString("full_time_result");
+                switch (fullTimeResult) {
+                    case "H":
+                        builder.incrementHome(rateDiff, GameResult.WIN);
+                        break;
+                    case "D":
+                        builder.incrementHome(rateDiff, GameResult.DRAW);
+                        break;
+                    case "A":
+                        builder.incrementHome(rateDiff, GameResult.LOSE);
+                        break;
+
+                    default:
+                        throw new IllegalStateException("Unknown full time game result: " + fullTimeResult);
+                }
+            }
         }
 
-        @JsonProperty("gamesProcessed")
-        public int getGamesProcessed()
+        @Override
+        public TeamRaterStats finish()
         {
-            return gamesProcessed;
-        }
-
-        @JsonProperty("teamRaterStats")
-        public TeamRaterStats getTeamRaterStats()
-        {
-            return teamRaterStats;
+            return builder.build();
         }
     }
 
     public static class TeamRaterStats
     {
         private final Map<Integer, RateStats> homeStats;
-
-        public static TeamRaterStats create()
-        {
-            return builder().build();
-        }
 
         public static Builder builder()
         {

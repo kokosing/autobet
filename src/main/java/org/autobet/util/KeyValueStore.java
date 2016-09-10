@@ -14,6 +14,7 @@
 package org.autobet.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
 import org.autobet.model.KeyValueStoreEntry;
@@ -47,6 +48,21 @@ public class KeyValueStore
         }
         try {
             T value = objectMapper.readValue((String) entry.get("_value"), clazz);
+            return Optional.of(value);
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    public static <T> Optional<T> loadLatest(String key, TypeReference<T> typeReference)
+    {
+        KeyValueStoreEntry entry = KeyValueStoreEntry.findFirst("_key = ? ORDER BY id DESC", key);
+        if (entry == null) {
+            return Optional.empty();
+        }
+        try {
+            T value = objectMapper.readValue((String) entry.get("_value"), typeReference);
             return Optional.of(value);
         }
         catch (IOException e) {

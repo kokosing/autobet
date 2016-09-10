@@ -22,6 +22,7 @@ import org.autobet.ai.TeamRatersStatsApproximation;
 import org.autobet.ioc.DaggerMainComponent;
 import org.autobet.ioc.DatabaseConnectionModule.DatabaseConnection;
 import org.autobet.ioc.MainComponent;
+import org.autobet.util.GamesProcessorDriver;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.DBException;
 
@@ -140,10 +141,11 @@ public final class App
         @Override
         public void go(MainComponent component)
         {
-            TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector();
-            long start = currentTimeMillis();
+            GamesProcessorDriver gamesProcessorDriver = new GamesProcessorDriver(component);
             GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
-            TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(teamRater, getLimit(), component);
+            TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(gamesProcessorDriver, teamRater);
+            long start = currentTimeMillis();
+            TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(getLimit());
             long end = currentTimeMillis();
             TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(stats);
             System.out.println("Stats collection took: " + (end - start) + "ms");
