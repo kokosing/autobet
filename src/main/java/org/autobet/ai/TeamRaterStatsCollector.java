@@ -14,13 +14,18 @@
 
 package org.autobet.ai;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.primitives.Ints;
 import org.autobet.ioc.MainComponent;
 import org.autobet.model.Game;
 import org.autobet.model.Team;
 import org.autobet.ui.ProgressBar;
+import org.autobet.util.KeyValueStore;
 import org.javalite.activejdbc.Base;
 
 import java.sql.Date;
@@ -45,13 +50,21 @@ public class TeamRaterStatsCollector
 
     public TeamRaterStats collect(TeamRater teamRater, Optional<Integer> limit, MainComponent component)
     {
-        long count = Game.count();
+        String storeKey = TeamRaterStatsCollector.class.getName();
+        Optional<CollectionResult> cachedCollectionResult = KeyValueStore.loadLatest(storeKey, CollectionResult.class);
+
+        int startGame = 0;
+        if (cachedCollectionResult.isPresent()) {
+            startGame = cachedCollectionResult.get().gamesProcessed;
+        }
+
+        long count = Game.count() - startGame;
         if (limit.isPresent() && limit.get() < count) {
             count = limit.get();
         }
         ProgressBar progressBar = new ProgressBar(count, "games");
 
-        Iterator<Game> games = Game.findAll(limit).iterator();
+        Iterator<Game> games = Game.findAll(startGame, limit).iterator();
         List<CompletableFuture<TeamRaterStats>> futures = IntStream.range(0, Runtime.getRuntime().availableProcessors())
                 .mapToObj(i -> supplyAsync(() -> {
                     Base.open(component.getDataSource());
@@ -77,7 +90,8 @@ public class TeamRaterStatsCollector
                     }
                 })).collect(toImmutableList());
 
-        TeamRaterStats stats = TeamRaterStats.create();
+        TeamRaterStats stats = cachedCollectionResult.map(CollectionResult::getTeamRaterStats)
+                .orElse(TeamRaterStats.create());
         for (CompletableFuture<TeamRaterStats> future : futures) {
             try {
                 stats = stats.merge(future.get());
@@ -86,6 +100,7 @@ public class TeamRaterStatsCollector
                 throw Throwables.propagate(e);
             }
         }
+        KeyValueStore.store(storeKey, new CollectionResult(Ints.checkedCast(startGame + count), stats));
         return stats;
     }
 
@@ -119,6 +134,33 @@ public class TeamRaterStatsCollector
         }
     }
 
+    public static class CollectionResult
+    {
+        private final int gamesProcessed;
+        private final TeamRaterStats teamRaterStats;
+
+        @JsonCreator
+        public CollectionResult(
+                @JsonProperty("gamesProcessed") int gamesProcessed,
+                @JsonProperty("teamRaterStats") TeamRaterStats teamRaterStats)
+        {
+            this.gamesProcessed = gamesProcessed;
+            this.teamRaterStats = teamRaterStats;
+        }
+
+        @JsonProperty("gamesProcessed")
+        public int getGamesProcessed()
+        {
+            return gamesProcessed;
+        }
+
+        @JsonProperty("teamRaterStats")
+        public TeamRaterStats getTeamRaterStats()
+        {
+            return teamRaterStats;
+        }
+    }
+
     public static class TeamRaterStats
     {
         private final Map<Integer, RateStats> homeStats;
@@ -133,7 +175,8 @@ public class TeamRaterStatsCollector
             return new Builder();
         }
 
-        private TeamRaterStats(Map<Integer, RateStats> homeStats)
+        @JsonCreator
+        private TeamRaterStats(@JsonProperty("homeStats") Map<Integer, RateStats> homeStats)
         {
             this.homeStats = ImmutableMap.copyOf(homeStats);
         }
@@ -143,11 +186,13 @@ public class TeamRaterStatsCollector
             return Optional.ofNullable(homeStats.get(rate));
         }
 
+        @JsonProperty("homeStats")
         public Map<Integer, RateStats> getHomeStats()
         {
-            return ImmutableMap.copyOf(homeStats);
+            return homeStats;
         }
 
+        @JsonIgnore
         public List<Integer> getRates()
         {
             return homeStats.keySet()
@@ -156,6 +201,7 @@ public class TeamRaterStatsCollector
                     .collect(toImmutableList());
         }
 
+        @JsonIgnore
         public int getCount()
         {
             return getRates().stream()
@@ -210,11 +256,13 @@ public class TeamRaterStatsCollector
 
         private final Map<GameResult, Integer> stats;
 
-        public RateStats(Map<GameResult, Integer> stats)
+        @JsonCreator
+        public RateStats(@JsonProperty("stats") Map<GameResult, Integer> stats)
         {
             this.stats = ImmutableMap.copyOf(stats);
         }
 
+        @JsonIgnore
         public int getCount()
         {
             return stats.values().stream()
@@ -222,21 +270,25 @@ public class TeamRaterStatsCollector
                     .orElse(0);
         }
 
+        @JsonIgnore
         public int getWins()
         {
             return get(GameResult.WIN);
         }
 
+        @JsonIgnore
         public int getDraws()
         {
             return get(GameResult.DRAW);
         }
 
+        @JsonIgnore
         public int getLoses()
         {
             return get(GameResult.LOSE);
         }
 
+        @JsonIgnore
         public int get(GameResult gameResult)
         {
             Integer gameResultStats = stats.get(gameResult);
@@ -252,6 +304,12 @@ public class TeamRaterStatsCollector
                 }
             }
             return builder.build();
+        }
+
+        @JsonProperty("stats")
+        public Map<GameResult, Integer> getStats()
+        {
+            return stats;
         }
 
         public static class Builder

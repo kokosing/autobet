@@ -22,11 +22,11 @@ import java.util.Optional;
 public class Game
         extends Model
 {
-    public static LazyList<Game> findAll(Optional<Integer> limit)
+    public static LazyList<Game> findAll(int startGame, Optional<Integer> limit)
     {
         if (limit.isPresent()) {
-            return Game.findBySQL("SELECT * FROM games LIMIT ?", limit.get());
+            return Game.findBySQL("SELECT * FROM games WHERE id > ? ORDER BY id LIMIT ?", startGame, limit.get());
         }
-        return Game.findAll();
+        return Game.findBySQL("SELECT * FROM games WHERE id > ? ORDER BY id startGame", startGame);
     }
 }
