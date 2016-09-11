@@ -60,6 +60,11 @@ public class TeamRaterStatsCollector
         @Override
         public void process(Game game)
         {
+            String fullTimeResult = game.getString("full_time_result");
+            if (fullTimeResult == null) {
+                return;
+            }
+
             Team homeTeam = Team.findById(game.getLong("home_team_id"));
             Team awayTeam = Team.findById(game.getLong("away_team_id"));
             Date playedAt = game.getDate("played_at");
@@ -69,8 +74,6 @@ public class TeamRaterStatsCollector
 
             if (homeTeamRate.isPresent() && awayTeamRate.isPresent()) {
                 int rateDiff = homeTeamRate.get() - awayTeamRate.get();
-
-                String fullTimeResult = game.getString("full_time_result");
                 switch (fullTimeResult) {
                     case "H":
                         builder.incrementHome(rateDiff, GameResult.WIN);
