@@ -14,6 +14,7 @@
 
 package org.autobet.ai;
 
+import org.autobet.model.Game;
 import org.autobet.model.Team;
 
 import java.sql.Date;
@@ -22,4 +23,18 @@ import java.util.Optional;
 public interface TeamRater
 {
     Optional<Integer> rate(Team team, Date date);
+
+    default Optional<Integer> rate(Game game)
+    {
+        Team homeTeam = Team.findById(game.getLong("home_team_id"));
+        Team awayTeam = Team.findById(game.getLong("away_team_id"));
+        Date playedAt = game.getDate("played_at");
+
+        Optional<Integer> homeTeamRate = rate(homeTeam, playedAt);
+        Optional<Integer> awayTeamRate = rate(awayTeam, playedAt);
+        if (homeTeamRate.isPresent() && awayTeamRate.isPresent()) {
+            return Optional.of(homeTeamRate.get() - awayTeamRate.get());
+        }
+        return Optional.empty();
+    }
 }

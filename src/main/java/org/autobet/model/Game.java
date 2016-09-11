@@ -27,6 +27,6 @@ public class Game
         if (limit.isPresent()) {
             return Game.findBySQL("SELECT * FROM games WHERE id > ? ORDER BY id LIMIT ?", startGame, limit.get());
         }
-        return Game.findBySQL("SELECT * FROM games WHERE id > ? ORDER BY id startGame", startGame);
+        return Game.findBySQL("SELECT * FROM games WHERE id > ? ORDER BY id", startGame);
     }
 }

@@ -16,7 +16,11 @@ package org.autobet;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import org.autobet.ai.ChancesApproximationBasedPlayer;
 import org.autobet.ai.GoalBasedTeamRater;
+import org.autobet.ai.Player;
+import org.autobet.ai.PlayerEvaluator;
+import org.autobet.ai.RandomPlayer;
 import org.autobet.ai.TeamRaterStatsCollector;
 import org.autobet.ai.TeamRatersStatsApproximation;
 import org.autobet.ioc.DaggerMainComponent;
@@ -41,7 +45,7 @@ import static org.autobet.ImmutableCollectors.toImmutableMap;
 public final class App
 {
     private final Map<String, Command> commands = Stream.of(
-            new LoadCommand(), new QueryCommand(), new StatsCalculatorCommand())
+            new LoadCommand(), new QueryCommand(), new StatsCalculatorCommand(), new PlayerEvaluatorCommand())
             .collect(toImmutableMap(Command::getName));
 
     @Parameter(names = {"--help", "-h"}, help = true)
@@ -137,8 +141,9 @@ public final class App
     public static final class StatsCalculatorCommand
             implements Command
     {
-        @Parameter(names = {"-c",
-                            "--max-count"}, description = "number of maximum games to to process (default: unlimited)")
+        @Parameter(
+                names = {"-c", "--max-count"},
+                description = "number of maximum games to to process (default: unlimited)")
         private int limit = -1;
 
         @Override
@@ -200,6 +205,67 @@ public final class App
         public String getName()
         {
             return "stats";
+        }
+    }
+
+    @Parameters(commandDescription = "Evaluate the player strategy")
+    public static final class PlayerEvaluatorCommand
+            implements Command
+    {
+        @Parameter(
+                names = {"-c", "--max-count"},
+                description = "number of maximum games to to process (default: unlimited)")
+        private int limit = -1;
+
+        @Parameter(names = {"-s", "--strategy"}, description = "strategy to test (default: goal_based)")
+        private String strategy = "goal_based";
+
+        @Parameter(names = {"-l", "--list-strategies"}, description = "list available strategies", arity = 1)
+        private boolean listStrategies = false;
+
+        @Override
+        public void go(MainComponent component)
+        {
+            if (listStrategies) {
+                System.out.println("random, goal_based");
+                return;
+            }
+
+            Player player;
+            GamesProcessorDriver driver = new GamesProcessorDriver(component);
+            switch (strategy) {
+                case "goal_based":
+                    GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
+                    //TODO: do not collect stats here
+                    TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(driver, teamRater);
+                    TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(Optional.of(100));
+                    TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(stats);
+                    player = new ChancesApproximationBasedPlayer(approximation, teamRater);
+                    break;
+                case "random":
+                    player = new RandomPlayer();
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown player strategy: " + strategy);
+            }
+
+            PlayerEvaluator evaluator = new PlayerEvaluator(driver, player);
+            double evaluation = evaluator.evaluate(getLimit());
+            System.out.println(format("Evaluation result: %.2f", evaluation));
+        }
+
+        private Optional<Integer> getLimit()
+        {
+            if (limit > 0) {
+                return Optional.of(limit);
+            }
+            return Optional.empty();
+        }
+
+        @Override
+        public String getName()
+        {
+            return "eval";
         }
     }
 

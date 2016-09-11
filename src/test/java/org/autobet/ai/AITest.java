@@ -97,5 +97,9 @@ public class AITest
         assertEquals(approximation.getHomeWinChances(10), 0.65, 0.01);
         assertEquals(approximation.getHomeLoseChances(10), 0.12, 0.01);
         assertEquals(approximation.getHomeDrawChances(10), 0.23, 0.01);
+
+        ChancesApproximationBasedPlayer player = new ChancesApproximationBasedPlayer(approximation, teamRater);
+        PlayerEvaluator playerEvaluator = new PlayerEvaluator(gamesProcessorDriver, player);
+        assertEquals(playerEvaluator.evaluate(Optional.empty()), 10.88, 0.01);
     }
 }

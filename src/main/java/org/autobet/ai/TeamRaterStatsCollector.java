@@ -20,10 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.autobet.model.Game;
-import org.autobet.model.Team;
 import org.autobet.util.GamesProcessorDriver;
 
-import java.sql.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,24 +63,17 @@ public class TeamRaterStatsCollector
                 return;
             }
 
-            Team homeTeam = Team.findById(game.getLong("home_team_id"));
-            Team awayTeam = Team.findById(game.getLong("away_team_id"));
-            Date playedAt = game.getDate("played_at");
-
-            Optional<Integer> homeTeamRate = teamRater.rate(homeTeam, playedAt);
-            Optional<Integer> awayTeamRate = teamRater.rate(awayTeam, playedAt);
-
-            if (homeTeamRate.isPresent() && awayTeamRate.isPresent()) {
-                int rateDiff = homeTeamRate.get() - awayTeamRate.get();
+            Optional<Integer> rate = teamRater.rate(game);
+            if (rate.isPresent()) {
                 switch (fullTimeResult) {
                     case "H":
-                        builder.incrementHome(rateDiff, GameResult.WIN);
+                        builder.incrementHome(rate.get(), GameResult.WIN);
                         break;
                     case "D":
-                        builder.incrementHome(rateDiff, GameResult.DRAW);
+                        builder.incrementHome(rate.get(), GameResult.DRAW);
                         break;
                     case "A":
-                        builder.incrementHome(rateDiff, GameResult.LOSE);
+                        builder.incrementHome(rate.get(), GameResult.LOSE);
                         break;
 
                     default:
