@@ -113,9 +113,12 @@ public class TeamRaterStatsCollector
             this.homeStats = ImmutableMap.copyOf(homeStats);
         }
 
-        public Optional<RateStats> getHome(int rate)
+        public RateStats getHome(int rate)
         {
-            return Optional.ofNullable(homeStats.get(rate));
+            if (homeStats.containsKey(rate)) {
+                return homeStats.get(rate);
+            }
+            return new RateStats(ImmutableMap.of());
         }
 
         @JsonProperty("homeStats")

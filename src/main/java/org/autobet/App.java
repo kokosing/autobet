@@ -31,7 +31,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static java.lang.Double.isNaN;
+import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
+import static java.util.Comparator.naturalOrder;
 import static java.util.Objects.requireNonNull;
 import static org.autobet.ImmutableCollectors.toImmutableMap;
 
@@ -145,21 +148,44 @@ public final class App
             GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
             TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(gamesProcessorDriver, teamRater);
             long start = currentTimeMillis();
-            TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(getLimit());
+            TeamRaterStatsCollector.TeamRaterStats teamRaterStats = statsCollector.collect(getLimit());
             long end = currentTimeMillis();
-            TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(stats);
+            TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(teamRaterStats);
             System.out.println("Stats collection took: " + (end - start) + "ms");
 
-            System.out.println("Rate - WINS - DRAWS - LOSES");
-            for (int rate : stats.getRates()) {
-                TeamRaterStatsCollector.RateStats rateStats = stats.getHome(rate).get();
-                System.out.println(String.format(
-                        "%4d - %d/%f - %d/%f - %d/%f",
+            System.out.println("Rate -     WINS      -     DRAWS     -    LOSES      - APPROX ERR");
+            List<Integer> rates = teamRaterStats.getRates();
+            int maxRate = rates.stream().max(naturalOrder()).orElse(0);
+            int minRate = rates.stream().min(naturalOrder()).orElse(0);
+            double totalApproximationError = 0;
+            for (int rate = minRate; rate <= maxRate; rate++) {
+                TeamRaterStatsCollector.RateStats stats = teamRaterStats.getHome(rate);
+                double approximationHomeWinChances = approximation.getHomeWinChances(rate);
+                double approximationHomeDrawChances = approximation.getHomeDrawChances(rate);
+                double approximationHomeLoseChances = approximation.getHomeLoseChances(rate);
+                double homeWinChances = (double) stats.getWins() / stats.getCount();
+                double homeDrawChances = (double) stats.getDraws() / stats.getCount();
+                double homeLoseChances = (double) stats.getLoses() / stats.getCount();
+                double approximationError = 0;
+                if (!isNaN(homeWinChances)) {
+                    approximationError += Math.abs(approximationHomeWinChances - homeWinChances);
+                }
+                if (!isNaN(homeDrawChances)) {
+                    approximationError += Math.abs(approximationHomeDrawChances - homeDrawChances);
+                }
+                if (!isNaN(homeLoseChances)) {
+                    approximationError += Math.abs(approximationHomeLoseChances - homeLoseChances);
+                }
+                totalApproximationError += approximationError;
+                System.out.println(format(
+                        "%4d - %3d/%.2f/%.2f - %3d/%.2f/%.2f - %3d/%.2f/%.2f -   %.2f",
                         rate,
-                        rateStats.getWins(), approximation.getHomeWinChances(rate),
-                        rateStats.getDraws(), approximation.getHomeDrawChances(rate),
-                        rateStats.getLoses(), approximation.getHomeLoseChances(rate)));
+                        stats.getWins(), homeWinChances, approximationHomeWinChances,
+                        stats.getDraws(), homeDrawChances, approximationHomeDrawChances,
+                        stats.getLoses(), homeLoseChances, approximationHomeLoseChances,
+                        approximationError));
             }
+            System.out.println(format("Approximation error: %.2f", totalApproximationError));
         }
 
         private Optional<Integer> getLimit()
