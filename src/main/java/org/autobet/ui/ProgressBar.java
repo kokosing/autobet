@@ -62,7 +62,7 @@ public class ProgressBar
     private void display(Instant now)
     {
         long localCounter = getCounter();
-        double percent = (int) (localCounter * 100 / count);
+        double percent = (double) localCounter * 100 / count;
         Duration sinceStart = Duration.between(start, now);
         double throughput = (double) localCounter / sinceStart.getSeconds();
         Duration left = Duration.ofSeconds((long) ((count - localCounter) / throughput));
