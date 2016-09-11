@@ -36,10 +36,11 @@ public class AITest
     @Test
     public void evaluateRandomPlayer()
     {
-        PlayerEvaluator evaluator = new PlayerEvaluator();
-
+        GamesProcessorDriver gamesProcessorDriver = new GamesProcessorDriver(temporaryDatabase.getComponent());
         RandomPlayer player = new RandomPlayer();
-        double evaluation = evaluator.evaluate(player, Date.valueOf("2000-01-01"), Date.valueOf("2000-12-31"));
+        PlayerEvaluator evaluator = new PlayerEvaluator(gamesProcessorDriver, player);
+
+        double evaluation = evaluator.evaluate(Optional.of(100));
 
         assertTrue(evaluation < 100);
     }
