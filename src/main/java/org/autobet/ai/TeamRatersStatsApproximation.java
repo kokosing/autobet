@@ -31,7 +31,7 @@ import static org.autobet.ai.TeamRaterStatsCollector.GameResult.WIN;
 
 public class TeamRatersStatsApproximation
 {
-    private static final PolynomialCurveFitter fitter = PolynomialCurveFitter.create(4);
+    private static final PolynomialCurveFitter fitter = PolynomialCurveFitter.create(1);
 
     private final Polynomial homeWinChances;
     private final Polynomial homeLoseChances;
