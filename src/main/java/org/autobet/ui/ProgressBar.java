@@ -73,9 +73,23 @@ public class ProgressBar
                 itemsName,
                 percent,
                 throughput,
-                sinceStart,
-                left);
+                format(sinceStart),
+                format(left));
         System.out.print("\r" + msg);
+    }
+
+    private String format(Duration duration)
+    {
+        long seconds = duration.getSeconds();
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+        if (minutes == 0) {
+            return String.format("%ds", seconds);
+        }
+        else if (hours == 0) {
+            return String.format("%dmin %ds", minutes, seconds);
+        }
+        return String.format("%dh %dmin %ds", hours, minutes, seconds);
     }
 
     public long getCounter()
