@@ -65,7 +65,7 @@ class Loader
         return builder.build();
     }
 
-    int load(String csvFile)
+    public int load(String csvFile)
     {
         Base.openTransaction();
         AtomicInteger counter = new AtomicInteger();

@@ -30,11 +30,14 @@ import org.autobet.util.GamesProcessorDriver;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.DBException;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.Double.isNaN;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
@@ -89,20 +92,40 @@ public final class App
         {
             Loader loader = new Loader();
             for (String csvFile : csvFiles) {
-                long start = currentTimeMillis();
-                System.out.println("loading: " + csvFile);
-                try {
-                    int load = loader.load(csvFile);
-                    System.out.println("loaded " + load + " new objects in:" + (currentTimeMillis() - start) + "ms");
-                }
-                catch (DBException ex) {
-                    System.out.println("Unable to load: " + csvFile);
-                    ;
-                    System.out.println(ex.getMessage());
-                    ex.printStackTrace();
-                }
+                load(loader, csvFile);
             }
         }
+
+        public void load(Loader loader, String fileName)
+        {
+            File file = new File(fileName);
+            checkArgument(file.exists(), "File does not exists: %s", fileName);
+            if (file.isDirectory()) {
+                String[] list = file.list();
+                Arrays.sort(list);
+                for (String child : list) {
+                    load(loader, fileName + "/" + child);
+                }
+            } else {
+                loadSingleFile(loader, fileName);
+            }
+        }
+
+        private void loadSingleFile(Loader loader, String csvFile)
+        {
+            long start = currentTimeMillis();
+            System.out.println("loading: " + csvFile);
+            try {
+                int load = loader.load(csvFile);
+                System.out.println("loaded " + load + " new objects in:" + (currentTimeMillis() - start) + "ms");
+            }
+            catch (DBException ex) {
+                System.out.println("Unable to load: " + csvFile);
+                System.out.println(ex.getMessage());
+                ex.printStackTrace();
+            }
+        }
+
 
         @Override
         public String getName()
