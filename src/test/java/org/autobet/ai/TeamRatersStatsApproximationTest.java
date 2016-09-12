@@ -27,43 +27,23 @@ public class TeamRatersStatsApproximationTest
     public void test()
     {
         TeamRaterStatsCollector.TeamRaterStats.Builder stats = TeamRaterStatsCollector.TeamRaterStats.builder();
-        stats.incrementHome(-2, LOSE);
-        stats.incrementHome(-2, LOSE);
-        stats.incrementHome(-2, LOSE);
-        stats.incrementHome(-2, LOSE);
-        stats.incrementHome(-2, DRAW);
-        stats.incrementHome(-2, DRAW);
-        stats.incrementHome(-2, DRAW);
+        stats.addHome(-2, LOSE, 4);
+        stats.addHome(-2, DRAW, 3);
 
-        stats.incrementHome(-1, LOSE);
-        stats.incrementHome(-1, LOSE);
-        stats.incrementHome(-1, LOSE);
-        stats.incrementHome(-1, DRAW);
-        stats.incrementHome(-1, DRAW);
+        stats.addHome(-1, LOSE, 3);
+        stats.addHome(-1, DRAW, 2);
         stats.incrementHome(-1, WIN);
 
-        stats.incrementHome(0, LOSE);
-        stats.incrementHome(0, LOSE);
-        stats.incrementHome(0, DRAW);
-        stats.incrementHome(0, DRAW);
-        stats.incrementHome(0, DRAW);
-        stats.incrementHome(0, WIN);
-        stats.incrementHome(0, WIN);
+        stats.addHome(0, LOSE, 2);
+        stats.addHome(0, DRAW, 3);
+        stats.addHome(0, WIN, 2);
 
         stats.incrementHome(1, LOSE);
-        stats.incrementHome(1, DRAW);
-        stats.incrementHome(1, DRAW);
-        stats.incrementHome(1, WIN);
-        stats.incrementHome(1, WIN);
-        stats.incrementHome(1, WIN);
+        stats.addHome(1, DRAW, 2);
+        stats.addHome(1, WIN, 3);
 
-        stats.incrementHome(2, DRAW);
-        stats.incrementHome(2, DRAW);
-        stats.incrementHome(2, DRAW);
-        stats.incrementHome(2, WIN);
-        stats.incrementHome(2, WIN);
-        stats.incrementHome(2, WIN);
-        stats.incrementHome(2, WIN);
+        stats.addHome(2, DRAW, 3);
+        stats.addHome(2, WIN, 4);
 
         TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(stats.build());
 
