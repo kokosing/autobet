@@ -21,12 +21,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.autobet.model.Game;
 import org.autobet.util.GamesProcessorDriver;
+import org.autobet.util.KeyValueStore;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.autobet.ImmutableCollectors.toImmutableList;
 
 public class TeamRaterStatsCollector
@@ -53,7 +55,7 @@ public class TeamRaterStatsCollector
     private class GameProcessor
             implements GamesProcessorDriver.GamesProcessor<TeamRaterStats>
     {
-        private final TeamRaterStats.Builder builder = TeamRaterStats.builder();
+        private final TeamRaterStats.Builder builder = TeamRaterStats.builder(teamRater.getName());
 
         @Override
         public void process(Game game)
@@ -90,17 +92,22 @@ public class TeamRaterStatsCollector
     }
 
     public static class TeamRaterStats
+            implements KeyValueStore.Storable
     {
         private final Map<Integer, RateStats> homeStats;
+        private final String storageKey;
 
-        public static Builder builder()
+        public static Builder builder(String storageKey)
         {
-            return new Builder();
+            return new Builder(storageKey);
         }
 
         @JsonCreator
-        private TeamRaterStats(@JsonProperty("homeStats") Map<Integer, RateStats> homeStats)
+        private TeamRaterStats(
+                @JsonProperty("storageKey") String storageKey,
+                @JsonProperty("homeStats") Map<Integer, RateStats> homeStats)
         {
+            this.storageKey = storageKey;
             this.homeStats = ImmutableMap.copyOf(homeStats);
         }
 
@@ -138,7 +145,8 @@ public class TeamRaterStatsCollector
 
         public TeamRaterStats merge(TeamRaterStats other)
         {
-            TeamRaterStats.Builder builder = builder();
+            checkArgument(storageKey.equals(other.getStorageKey()), "Storage keys are different");
+            TeamRaterStats.Builder builder = builder(storageKey);
             for (TeamRaterStats stats : ImmutableList.of(this, other)) {
                 for (int rate : stats.homeStats.keySet()) {
                     RateStats rateStats = stats.homeStats.get(rate);
@@ -150,9 +158,22 @@ public class TeamRaterStatsCollector
             return builder.build();
         }
 
+        @JsonProperty("storageKey")
+        @Override
+        public String getStorageKey()
+        {
+            return storageKey;
+        }
+
         public static class Builder
         {
             private final Map<Integer, RateStats> homeStats = new HashMap<>();
+            private final String storageKey;
+
+            public Builder(String storageKey)
+            {
+                this.storageKey = storageKey;
+            }
 
             public Builder incrementHome(int rate, GameResult gameResult)
             {
@@ -168,7 +189,7 @@ public class TeamRaterStatsCollector
 
             public TeamRaterStats build()
             {
-                return new TeamRaterStats(homeStats);
+                return new TeamRaterStats(storageKey, homeStats);
             }
         }
     }

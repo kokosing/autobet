@@ -54,4 +54,10 @@ public class ChancesApproximationBasedPlayer
         }
         return guess.build();
     }
+
+    @Override
+    public String getName()
+    {
+        return "chances_based_on_" + teamRater.getName() + "_rater";
+    }
 }

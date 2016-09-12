@@ -250,8 +250,8 @@ public final class App
             }
 
             PlayerEvaluator evaluator = new PlayerEvaluator(driver, player);
-            double evaluation = evaluator.evaluate(getLimit());
-            System.out.println(format("Evaluation result: %.2f", evaluation));
+            PlayerEvaluator.Statistics evaluation = evaluator.evaluate(getLimit());
+            System.out.println(format("Evaluation result: %.2f", evaluation.getResult()));
         }
 
         private Optional<Integer> getLimit()

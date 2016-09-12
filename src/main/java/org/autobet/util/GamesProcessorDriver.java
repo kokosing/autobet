@@ -43,14 +43,14 @@ public class GamesProcessorDriver
         this.mainComponent = mainComponent;
     }
 
-    public <T> T driveProcessors(
+    public <T extends KeyValueStore.Storable> T driveProcessors(
             Provider<GamesProcessor<T>> gamesProcessorProvider,
             BiFunction<T, T, T> merger,
             Optional<Integer> limit)
     {
-        String storeKey = gamesProcessorProvider.getClass().getName();
-        String countKey = "count_" + storeKey;
         T union = gamesProcessorProvider.get().finish();
+        String storeKey = union.getStorageKey();
+        String countKey = "count_" + storeKey;
         Optional<T> cachedResult = KeyValueStore.loadLatest(storeKey, (Class<T>) union.getClass());
         Optional<Integer> cachedCount = KeyValueStore.loadLatest(countKey, Integer.class);
 
@@ -107,7 +107,7 @@ public class GamesProcessorDriver
         return result;
     }
 
-    public interface GamesProcessor<T>
+    public interface GamesProcessor<T extends KeyValueStore.Storable>
     {
         void process(Game game);
 

@@ -65,4 +65,10 @@ public class GoalBasedTeamRater
 
         return Optional.of(toIntExact(totalScored.subtract(totalLost).longValue()));
     }
+
+    @Override
+    public String getName()
+    {
+        return "goal_based";
+    }
 }

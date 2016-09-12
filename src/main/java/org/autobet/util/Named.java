@@ -12,33 +12,9 @@
  * limitations under the License.
  */
 
-package org.autobet.ai;
+package org.autobet.util;
 
-import org.autobet.model.Game;
-import org.autobet.util.Named;
-
-import java.util.List;
-
-public interface Player extends Named
+public interface Named
 {
-    enum Guess
-    {
-        FULL_TIME_HOME_TEAM_WIN("H"),
-        FULL_TIME_DRAW("D"),
-        FULL_TIME_AWAY_TEAM_WIN("A");
-
-        private final String betSuffix;
-
-        Guess(String betSuffix)
-        {
-            this.betSuffix = betSuffix;
-        }
-
-        public String getBetSuffix()
-        {
-            return betSuffix;
-        }
-    }
-
-    List<Guess> guess(Game game);
+    String getName();
 }

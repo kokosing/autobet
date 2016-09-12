@@ -40,9 +40,9 @@ public class AITest
         RandomPlayer player = new RandomPlayer();
         PlayerEvaluator evaluator = new PlayerEvaluator(gamesProcessorDriver, player);
 
-        double evaluation = evaluator.evaluate(Optional.of(100));
+        PlayerEvaluator.Statistics evaluation = evaluator.evaluate(Optional.of(100));
 
-        assertTrue(evaluation < 100);
+        assertTrue(evaluation.getResult() < 100);
     }
 
     @Test
@@ -100,6 +100,6 @@ public class AITest
 
         ChancesApproximationBasedPlayer player = new ChancesApproximationBasedPlayer(approximation, teamRater);
         PlayerEvaluator playerEvaluator = new PlayerEvaluator(gamesProcessorDriver, player);
-        assertEquals(playerEvaluator.evaluate(Optional.empty()), 10.88, 0.01);
+        assertEquals(playerEvaluator.evaluate(Optional.empty()).getResult(), 10.88, 0.01);
     }
 }

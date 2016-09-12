@@ -14,11 +14,14 @@
 
 package org.autobet.ai;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.autobet.model.BetType;
 import org.autobet.model.Game;
 import org.autobet.util.GamesProcessorDriver;
+import org.autobet.util.KeyValueStore;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.RowListener;
 
@@ -27,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 public class PlayerEvaluator
@@ -57,13 +61,13 @@ public class PlayerEvaluator
         return builder.build();
     }
 
-    public double evaluate(Optional<Integer> limit)
+    public Statistics evaluate(Optional<Integer> limit)
     {
-        return gamesProcessorDriver.driveProcessors(() -> new GameProcessor(), (x, y) -> x + y, limit);
+        return gamesProcessorDriver.driveProcessors(() -> new GameProcessor(), Statistics::merge, limit);
     }
 
     private final class GameProcessor
-            implements GamesProcessorDriver.GamesProcessor<Double>
+            implements GamesProcessorDriver.GamesProcessor<Statistics>
     {
         private double result = 0;
 
@@ -88,9 +92,47 @@ public class PlayerEvaluator
         }
 
         @Override
-        public Double finish()
+        public Statistics finish()
+        {
+            return new Statistics(player.getName(), result);
+        }
+    }
+
+    public static class Statistics
+            implements KeyValueStore.Storable
+    {
+        private final String storageKey;
+        private final double result;
+
+        @JsonCreator
+        public Statistics(@JsonProperty("storageKey") String storageKey, @JsonProperty("result") double result)
+        {
+            this.storageKey = storageKey;
+            this.result = result;
+        }
+
+        @JsonProperty("result")
+        public double getResult()
         {
             return result;
+        }
+
+        @JsonProperty("storageKey")
+        @Override
+        public String getStorageKey()
+        {
+            return storageKey;
+        }
+
+        public Statistics merge(Statistics other)
+        {
+            checkArgument(
+                    storageKey.equals(other.getStorageKey()),
+                    "Statistics have to have same storageKey to be merged: %s vs %s",
+                    storageKey,
+                    other.getStorageKey());
+
+            return new Statistics(storageKey, result + other.getResult());
         }
     }
 

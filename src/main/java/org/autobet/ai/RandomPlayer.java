@@ -37,4 +37,10 @@ public class RandomPlayer
         }
         return ImmutableList.of(Guess.values()[guess]);
    }
+
+    @Override
+    public String getName()
+    {
+        return "random";
+    }
 }

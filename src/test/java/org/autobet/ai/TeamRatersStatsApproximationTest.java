@@ -26,7 +26,7 @@ public class TeamRatersStatsApproximationTest
     @Test
     public void test()
     {
-        TeamRaterStatsCollector.TeamRaterStats.Builder stats = TeamRaterStatsCollector.TeamRaterStats.builder();
+        TeamRaterStatsCollector.TeamRaterStats.Builder stats = TeamRaterStatsCollector.TeamRaterStats.builder("");
         stats.addHome(-2, LOSE, 4);
         stats.addHome(-2, DRAW, 3);
 

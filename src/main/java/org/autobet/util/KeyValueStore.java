@@ -69,4 +69,8 @@ public class KeyValueStore
             throw Throwables.propagate(e);
         }
     }
+
+    public interface Storable {
+        String getStorageKey();
+    }
 }

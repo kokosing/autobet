@@ -16,11 +16,12 @@ package org.autobet.ai;
 
 import org.autobet.model.Game;
 import org.autobet.model.Team;
+import org.autobet.util.Named;
 
 import java.sql.Date;
 import java.util.Optional;
 
-public interface TeamRater
+public interface TeamRater extends Named
 {
     Optional<Integer> rate(Team team, Date date);
 
