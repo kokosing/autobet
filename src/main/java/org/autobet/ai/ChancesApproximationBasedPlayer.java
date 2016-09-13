@@ -23,7 +23,7 @@ import java.util.Optional;
 public class ChancesApproximationBasedPlayer
         implements Player
 {
-    public static final double GUESS_THRESHOLD = 0.6;
+    private static final double GUESS_THRESHOLD = 0.6;
     private final TeamRatersStatsApproximation statsApproximation;
     private final TeamRater teamRater;
 

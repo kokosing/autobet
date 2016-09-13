@@ -63,7 +63,7 @@ public class PlayerEvaluator
 
     public Statistics evaluate(Optional<Integer> limit)
     {
-        return gamesProcessorDriver.driveProcessors(() -> new GameProcessor(), Statistics::merge, limit);
+        return gamesProcessorDriver.driveProcessors(() -> new GameProcessor(), limit);
     }
 
     private final class GameProcessor
@@ -99,7 +99,7 @@ public class PlayerEvaluator
     }
 
     public static class Statistics
-            implements KeyValueStore.Storable
+            implements KeyValueStore.Storable<Statistics>
     {
         private final String storageKey;
         private final double result;
@@ -124,6 +124,7 @@ public class PlayerEvaluator
             return storageKey;
         }
 
+        @Override
         public Statistics merge(Statistics other)
         {
             checkArgument(

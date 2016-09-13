@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 
 import static java.util.concurrent.CompletableFuture.supplyAsync;
@@ -45,7 +44,6 @@ public class GamesProcessorDriver
 
     public <T extends KeyValueStore.Storable> T driveProcessors(
             Provider<GamesProcessor<T>> gamesProcessorProvider,
-            BiFunction<T, T, T> merger,
             Optional<Integer> limit)
     {
         T union = gamesProcessorProvider.get().finish();
@@ -95,7 +93,7 @@ public class GamesProcessorDriver
         T result = cachedResult.orElse(union);
         for (CompletableFuture<T> future : futures) {
             try {
-                result = merger.apply(result, future.get());
+                result = (T) result.merge(future.get());
             }
             catch (InterruptedException | ExecutionException e) {
                 throw Throwables.propagate(e);

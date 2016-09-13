@@ -49,7 +49,7 @@ public class TeamRaterStatsCollector
 
     public TeamRaterStats collect(Optional<Integer> limit)
     {
-        return gamesProcessorDriver.driveProcessors(GameProcessor::new, TeamRaterStats::merge, limit);
+        return gamesProcessorDriver.driveProcessors(GameProcessor::new, limit);
     }
 
     private class GameProcessor
@@ -92,7 +92,7 @@ public class TeamRaterStatsCollector
     }
 
     public static class TeamRaterStats
-            implements KeyValueStore.Storable
+            implements KeyValueStore.Storable<TeamRaterStats>
     {
         private final Map<Integer, RateStats> homeStats;
         private final String storageKey;
@@ -143,6 +143,7 @@ public class TeamRaterStatsCollector
                     .orElse(0);
         }
 
+        @Override
         public TeamRaterStats merge(TeamRaterStats other)
         {
             checkArgument(storageKey.equals(other.getStorageKey()), "Storage keys are different");

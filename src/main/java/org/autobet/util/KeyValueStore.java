@@ -70,7 +70,9 @@ public class KeyValueStore
         }
     }
 
-    public interface Storable {
+    public interface Storable <T extends Storable> {
         String getStorageKey();
+
+        T merge(T other);
     }
 }
