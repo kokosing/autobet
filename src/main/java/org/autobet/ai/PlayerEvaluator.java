@@ -26,12 +26,14 @@ import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.RowListener;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.Objects.requireNonNull;
 
 public class PlayerEvaluator
 {
@@ -142,7 +144,8 @@ public class PlayerEvaluator
         SingleValueRowProcessor singleValueRowProcessor = new SingleValueRowProcessor();
         Base.find(query, params)
                 .with(singleValueRowProcessor);
-        return (T) singleValueRowProcessor.get();
+        T value = singleValueRowProcessor.get();
+        return (T) requireNonNull(value, () -> "got null for: '" + query + "' with params: " + Arrays.toString(params));
     }
 
     private static class SingleValueRowProcessor
