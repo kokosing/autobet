@@ -17,6 +17,7 @@ package org.autobet.model;
 import org.javalite.activejdbc.LazyList;
 import org.javalite.activejdbc.Model;
 
+import java.util.List;
 import java.util.Optional;
 
 public class Game
@@ -28,5 +29,9 @@ public class Game
             return Game.findBySQL("SELECT * FROM games WHERE id > ? ORDER BY id LIMIT ?", startGame, limit.get());
         }
         return Game.findBySQL("SELECT * FROM games WHERE id > ? ORDER BY id", startGame);
+    }
+
+    public List<Bet> getBets() {
+        return Bet.find("game_id = ? ", getId());
     }
 }

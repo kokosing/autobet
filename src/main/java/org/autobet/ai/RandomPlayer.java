@@ -15,6 +15,7 @@
 package org.autobet.ai;
 
 import com.google.common.collect.ImmutableList;
+import org.autobet.model.Bet;
 import org.autobet.model.Game;
 
 import java.util.List;
@@ -26,17 +27,17 @@ public class RandomPlayer
     private final Random random = new Random(0);
 
     @Override
-    public List<Guess> guess(Game game)
+    public List<Bet> guess(Game game, List<Bet> availableBets)
     {
         double randomDouble = random.nextDouble();
 
-        int guess = (int) (randomDouble * (Guess.values().length + 1));
+        int guess = (int) (randomDouble * (availableBets.size() + 1));
 
-        if (guess >= Guess.values().length) {
+        if (guess >= availableBets.size()) {
             return ImmutableList.of();
         }
-        return ImmutableList.of(Guess.values()[guess]);
-   }
+        return ImmutableList.of(availableBets.get(guess));
+    }
 
     @Override
     public String getName()

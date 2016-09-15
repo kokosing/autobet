@@ -100,6 +100,6 @@ public class AITest
 
         ChancesApproximationBasedPlayer player = new ChancesApproximationBasedPlayer(approximation, teamRater);
         PlayerEvaluator playerEvaluator = new PlayerEvaluator(gamesProcessorDriver, player);
-        assertEquals(playerEvaluator.evaluate(Optional.empty()).getResult(), 10.88, 0.01);
+        assertEquals(playerEvaluator.evaluate(Optional.empty()).getResult(), -181.21, 0.01);
     }
 }

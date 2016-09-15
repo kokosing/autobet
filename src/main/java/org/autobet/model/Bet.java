@@ -20,4 +20,13 @@ import org.javalite.activejdbc.annotations.Table;
 public class Bet
         extends Model
 {
+    public BetType getBetType()
+    {
+        return BetType.findById(getLong("bet_type_id"));
+    }
+
+    public boolean isWinning(Game game)
+    {
+        return getBetType().getString("bet_suffix").equalsIgnoreCase(game.getString("full_time_result"));
+    }
 }

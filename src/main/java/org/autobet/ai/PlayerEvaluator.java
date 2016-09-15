@@ -16,16 +16,14 @@ package org.autobet.ai;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import org.autobet.model.BetType;
+import org.autobet.model.Bet;
 import org.autobet.model.Game;
 import org.autobet.util.GamesProcessorDriver;
 import org.autobet.util.KeyValueStore;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.RowListener;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +35,6 @@ import static java.util.Objects.requireNonNull;
 
 public class PlayerEvaluator
 {
-    private final Map<Player.Guess, BetType> guessToBetTypes;
     private final GamesProcessorDriver gamesProcessorDriver;
     private final Player player;
 
@@ -45,22 +42,6 @@ public class PlayerEvaluator
     {
         this.gamesProcessorDriver = gamesProcessorDriver;
         this.player = player;
-        guessToBetTypes = buildGuessToBetTypes();
-    }
-
-    private Map<Player.Guess, BetType> buildGuessToBetTypes()
-    {
-        List<BetType> betTypes = BetType.findAll();
-        ImmutableMap.Builder<Player.Guess, BetType> builder = ImmutableMap.builder();
-        for (Player.Guess guess : Player.Guess.values()) {
-            builder.put(
-                    guess,
-                    betTypes.stream()
-                            .filter(betType -> betType.getString("bet_suffix").equals(guess.getBetSuffix()))
-                            .findFirst()
-                            .get());
-        }
-        return builder.build();
     }
 
     public Statistics evaluate(Optional<Integer> limit)
@@ -76,20 +57,12 @@ public class PlayerEvaluator
         @Override
         public void process(Game game)
         {
-            for (Player.Guess guess : player.guess(game)) {
-                boolean won = game.getString("full_time_result").equals(guess.getBetSuffix());
-                if (won) {
-                    BigDecimal winningOdds = querySingleValue(
-                            "select sum(odds) from bets where game_id = ? and bet_type_id=?",
-                            game.getId(),
-                            guessToBetTypes.get(guess).getId());
-                    result += winningOdds.doubleValue();
+            List<Bet> selectedBets = player.guess(game, game.getBets());
+            for (Bet bet : selectedBets) {
+                if (bet.isWinning(game)) {
+                    result += bet.getDouble("odds");
                 }
-                long costOfBets = querySingleValue(
-                        "select count(odds) from bets where game_id = ? and bet_type_id=?",
-                        game.getId(),
-                        guessToBetTypes.get(guess).getId());
-                result -= costOfBets;
+                result -= 1;
             }
         }
 

@@ -15,6 +15,7 @@
 package org.autobet.ai;
 
 import com.google.common.collect.ImmutableList;
+import org.autobet.model.Bet;
 import org.autobet.model.Game;
 
 import java.util.List;
@@ -23,7 +24,6 @@ import java.util.Optional;
 public class ChancesApproximationBasedPlayer
         implements Player
 {
-    private static final double GUESS_THRESHOLD = 0.6;
     private final TeamRatersStatsApproximation statsApproximation;
     private final TeamRater teamRater;
 
@@ -36,23 +36,37 @@ public class ChancesApproximationBasedPlayer
     }
 
     @Override
-    public List<Guess> guess(Game game)
+    public List<Bet> guess(Game game, List<Bet> availableBets)
     {
         Optional<Integer> rate = teamRater.rate(game);
         if (!rate.isPresent()) {
             return ImmutableList.of();
         }
-        ImmutableList.Builder<Guess> guess = ImmutableList.builder();
-        if (statsApproximation.getHomeLoseChances(rate.get()) > GUESS_THRESHOLD) {
-            guess.add(Guess.FULL_TIME_AWAY_TEAM_WIN);
+        double homeWinChances = statsApproximation.getHomeWinChances(rate.get());
+        double homeLoseChances = statsApproximation.getHomeLoseChances(rate.get());
+        double drawChances = statsApproximation.getDrawChances(rate.get());
+        ImmutableList.Builder<Bet> selectedBets = ImmutableList.builder();
+        for (Bet bet : availableBets) {
+            double chancesToWin;
+            if (bet.getBetType().isFullTimeHomeWin()) {
+                chancesToWin = homeWinChances;
+            }
+            else if (bet.getBetType().isFullTimeDraw()) {
+                chancesToWin = drawChances;
+            }
+            else if (bet.getBetType().isFullTimeAwayWin()) {
+                chancesToWin = homeLoseChances;
+            }
+            else {
+                throw new IllegalStateException("Unexpected bet type: " + bet.getBetType().toJson(false));
+            }
+            double award = bet.getDouble("odds") - 1;
+            double expectedAward = (chancesToWin * award - (1 - chancesToWin));
+            if (expectedAward > 0) {
+                selectedBets.add(bet);
+            }
         }
-        if (statsApproximation.getDrawChances(rate.get()) > GUESS_THRESHOLD) {
-            guess.add(Guess.FULL_TIME_DRAW);
-        }
-        if (statsApproximation.getHomeWinChances(rate.get()) > GUESS_THRESHOLD) {
-            guess.add(Guess.FULL_TIME_HOME_TEAM_WIN);
-        }
-        return guess.build();
+        return selectedBets.build();
     }
 
     @Override

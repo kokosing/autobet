@@ -20,4 +20,18 @@ import org.javalite.activejdbc.annotations.Cached;
 public class BetType
         extends Model
 {
+    public boolean isFullTimeHomeWin()
+    {
+        return getString("name").equalsIgnoreCase("full_time_home_win");
+    }
+
+    public boolean isFullTimeDraw()
+    {
+        return getString("name").equalsIgnoreCase("full_time_draw");
+    }
+
+    public boolean isFullTimeAwayWin()
+    {
+        return getString("name").equalsIgnoreCase("full_time_away_win");
+    }
 }

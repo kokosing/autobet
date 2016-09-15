@@ -14,31 +14,14 @@
 
 package org.autobet.ai;
 
+import org.autobet.model.Bet;
 import org.autobet.model.Game;
 import org.autobet.util.Named;
 
 import java.util.List;
 
-public interface Player extends Named
+public interface Player
+        extends Named
 {
-    enum Guess
-    {
-        FULL_TIME_HOME_TEAM_WIN("H"),
-        FULL_TIME_DRAW("D"),
-        FULL_TIME_AWAY_TEAM_WIN("A");
-
-        private final String betSuffix;
-
-        Guess(String betSuffix)
-        {
-            this.betSuffix = betSuffix;
-        }
-
-        public String getBetSuffix()
-        {
-            return betSuffix;
-        }
-    }
-
-    List<Guess> guess(Game game);
+    List<Bet> guess(Game game, List<Bet> availableBets);
 }
