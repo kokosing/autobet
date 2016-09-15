@@ -36,7 +36,7 @@ public class AITest
     @Test
     public void evaluateRandomPlayer()
     {
-        GamesProcessorDriver gamesProcessorDriver = new GamesProcessorDriver(temporaryDatabase.getComponent());
+        GamesProcessorDriver gamesProcessorDriver = new GamesProcessorDriver(temporaryDatabase.getComponent(), 1);
         RandomPlayer player = new RandomPlayer();
         PlayerEvaluator evaluator = new PlayerEvaluator(gamesProcessorDriver, player);
 
@@ -60,7 +60,7 @@ public class AITest
     @Test
     public void testStats()
     {
-        GamesProcessorDriver gamesProcessorDriver = new GamesProcessorDriver(temporaryDatabase.getComponent());
+        GamesProcessorDriver gamesProcessorDriver = new GamesProcessorDriver(temporaryDatabase.getComponent(), 1);
         GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
         TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(gamesProcessorDriver, teamRater);
 

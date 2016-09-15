@@ -36,10 +36,17 @@ import static org.autobet.ImmutableCollectors.toImmutableList;
 public class GamesProcessorDriver
 {
     private final MainComponent mainComponent;
+    private final int threadsCount;
 
     public GamesProcessorDriver(MainComponent mainComponent)
     {
+        this(mainComponent, Runtime.getRuntime().availableProcessors());
+    }
+
+    public GamesProcessorDriver(MainComponent mainComponent, int threadsCount)
+    {
         this.mainComponent = mainComponent;
+        this.threadsCount = threadsCount;
     }
 
     public <T extends KeyValueStore.Storable> T driveProcessors(
@@ -64,7 +71,7 @@ public class GamesProcessorDriver
         ProgressBar progressBar = new ProgressBar(count, "games");
 
         Iterator<Game> games = Game.findAll(startGame, limit).iterator();
-        List<CompletableFuture<T>> futures = IntStream.range(0, Runtime.getRuntime().availableProcessors())
+        List<CompletableFuture<T>> futures = IntStream.range(0, threadsCount)
                 .mapToObj(i -> supplyAsync(() -> {
                     Base.open(mainComponent.getDataSource());
                     try {
