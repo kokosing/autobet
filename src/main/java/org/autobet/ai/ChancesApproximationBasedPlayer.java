@@ -46,7 +46,7 @@ public class ChancesApproximationBasedPlayer
         if (statsApproximation.getHomeLoseChances(rate.get()) > GUESS_THRESHOLD) {
             guess.add(Guess.FULL_TIME_AWAY_TEAM_WIN);
         }
-        if (statsApproximation.getHomeDrawChances(rate.get()) > GUESS_THRESHOLD) {
+        if (statsApproximation.getDrawChances(rate.get()) > GUESS_THRESHOLD) {
             guess.add(Guess.FULL_TIME_DRAW);
         }
         if (statsApproximation.getHomeWinChances(rate.get()) > GUESS_THRESHOLD) {

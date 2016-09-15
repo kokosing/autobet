@@ -189,7 +189,7 @@ public final class App
             for (int rate = minRate; rate <= maxRate; rate++) {
                 TeamRaterStatsCollector.RateStats stats = teamRaterStats.getHome(rate);
                 double approximationHomeWinChances = approximation.getHomeWinChances(rate);
-                double approximationHomeDrawChances = approximation.getHomeDrawChances(rate);
+                double approximationHomeDrawChances = approximation.getDrawChances(rate);
                 double approximationHomeLoseChances = approximation.getHomeLoseChances(rate);
                 double homeWinChances = (double) stats.getWins() / stats.getCount();
                 double homeDrawChances = (double) stats.getDraws() / stats.getCount();

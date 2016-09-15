@@ -80,23 +80,23 @@ public class AITest
         TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(raterStats);
         assertEquals(approximation.getHomeWinChances(-10), 0.33, 0.01);
         assertEquals(approximation.getHomeLoseChances(-10), 0.4, 0.01);
-        assertEquals(approximation.getHomeDrawChances(-10), 0.28, 0.01);
+        assertEquals(approximation.getDrawChances(-10), 0.28, 0.01);
 
         assertEquals(approximation.getHomeWinChances(-3), 0.44, 0.01);
         assertEquals(approximation.getHomeLoseChances(-3), 0.3, 0.01);
-        assertEquals(approximation.getHomeDrawChances(-3), 0.26, 0.01);
+        assertEquals(approximation.getDrawChances(-3), 0.26, 0.01);
 
         assertEquals(approximation.getHomeWinChances(0), 0.49, 0.01);
         assertEquals(approximation.getHomeLoseChances(0), 0.26, 0.01);
-        assertEquals(approximation.getHomeDrawChances(0), 0.25, 0.01);
+        assertEquals(approximation.getDrawChances(0), 0.25, 0.01);
 
         assertEquals(approximation.getHomeWinChances(3), 0.54, 0.01);
         assertEquals(approximation.getHomeLoseChances(3), 0.22, 0.01);
-        assertEquals(approximation.getHomeDrawChances(3), 0.25, 0.01);
+        assertEquals(approximation.getDrawChances(3), 0.25, 0.01);
 
         assertEquals(approximation.getHomeWinChances(10), 0.65, 0.01);
         assertEquals(approximation.getHomeLoseChances(10), 0.12, 0.01);
-        assertEquals(approximation.getHomeDrawChances(10), 0.23, 0.01);
+        assertEquals(approximation.getDrawChances(10), 0.23, 0.01);
 
         ChancesApproximationBasedPlayer player = new ChancesApproximationBasedPlayer(approximation, teamRater);
         PlayerEvaluator playerEvaluator = new PlayerEvaluator(gamesProcessorDriver, player);

@@ -24,7 +24,6 @@ import org.autobet.math.Polynomial;
 import java.util.List;
 import java.util.Map;
 
-import static org.autobet.ImmutableCollectors.toImmutableList;
 import static org.autobet.ai.TeamRaterStatsCollector.GameResult.DRAW;
 import static org.autobet.ai.TeamRaterStatsCollector.GameResult.LOSE;
 import static org.autobet.ai.TeamRaterStatsCollector.GameResult.WIN;
@@ -35,13 +34,13 @@ public class TeamRatersStatsApproximation
 
     private final Polynomial homeWinChances;
     private final Polynomial homeLoseChances;
-    private final Polynomial homeDrawChances;
+    private final Polynomial drawChances;
 
     public TeamRatersStatsApproximation(TeamRaterStats teamRaterStats)
     {
         homeWinChances = approximate(teamRaterStats, WIN);
         homeLoseChances = approximate(teamRaterStats, LOSE);
-        homeDrawChances = approximate(teamRaterStats, DRAW);
+        drawChances = approximate(teamRaterStats, DRAW);
     }
 
     private Polynomial approximate(TeamRaterStats teamRaterStats, GameResult gameResult)
@@ -69,9 +68,9 @@ public class TeamRatersStatsApproximation
         return cap(homeLoseChances.calculate(rate));
     }
 
-    public double getHomeDrawChances(int rate)
+    public double getDrawChances(int rate)
     {
-        return cap(homeDrawChances.calculate(rate));
+        return cap(drawChances.calculate(rate));
     }
 
     private double cap(double value)

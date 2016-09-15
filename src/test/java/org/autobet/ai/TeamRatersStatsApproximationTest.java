@@ -47,23 +47,23 @@ public class TeamRatersStatsApproximationTest
 
         TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(stats.build());
 
-        assertEquals(approximation.getHomeDrawChances(-2), 0.4, 0.01);
+        assertEquals(approximation.getDrawChances(-2), 0.4, 0.01);
         assertEquals(approximation.getHomeLoseChances(-2), 0.6, 0.01);
         assertEquals(approximation.getHomeWinChances(-2), 0, 0.01);
 
-        assertEquals(approximation.getHomeDrawChances(-1), 0.4, 0.01);
+        assertEquals(approximation.getDrawChances(-1), 0.4, 0.01);
         assertEquals(approximation.getHomeLoseChances(-1), 0.45, 0.01);
         assertEquals(approximation.getHomeWinChances(-1), 0.15, 0.01);
 
-        assertEquals(approximation.getHomeDrawChances(0), 0.39, 0.01);
+        assertEquals(approximation.getDrawChances(0), 0.39, 0.01);
         assertEquals(approximation.getHomeLoseChances(0), 0.30, 0.01);
         assertEquals(approximation.getHomeWinChances(0), 0.30, 0.01);
 
-        assertEquals(approximation.getHomeDrawChances(1), 0.39, 0.01);
+        assertEquals(approximation.getDrawChances(1), 0.39, 0.01);
         assertEquals(approximation.getHomeLoseChances(1), 0.16, 0.01);
         assertEquals(approximation.getHomeWinChances(1), 0.45, 0.01);
 
-        assertEquals(approximation.getHomeDrawChances(2), 0.39, 0.01);
+        assertEquals(approximation.getDrawChances(2), 0.39, 0.01);
         assertEquals(approximation.getHomeLoseChances(2), 0, 0.01);
         assertEquals(approximation.getHomeWinChances(2), 0.6, 0.01);
     }
