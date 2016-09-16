@@ -101,9 +101,9 @@ public class AITest
         ChancesApproximationBasedPlayer player = new ChancesApproximationBasedPlayer(approximation, teamRater);
         PlayerEvaluator playerEvaluator = new PlayerEvaluator(gamesProcessorDriver, player);
         PlayerEvaluator.Statistics playerStats = playerEvaluator.evaluate(Optional.empty());
-        assertEquals(playerStats.getResult(), -181.21, 0.01);
+        assertEquals(playerStats.getResult(), -115.05, 0.01);
         assertEquals(playerStats.getBetsCount(), 3600);
-        assertEquals(playerStats.getPlayedBetsCount(), 705);
-        assertEquals(playerStats.getWinningBetsCount(), 195);
+        assertEquals(playerStats.getPlayedBetsCount(), 187);
+        assertEquals(playerStats.getWinningBetsCount(), 18);
     }
 }

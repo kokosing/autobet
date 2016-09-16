@@ -24,6 +24,7 @@ import java.util.Optional;
 public class ChancesApproximationBasedPlayer
         implements Player
 {
+    private final static double PLAYING_AWARD_THRESHOLD = 0.3;
     private final TeamRatersStatsApproximation statsApproximation;
     private final TeamRater teamRater;
 
@@ -62,7 +63,7 @@ public class ChancesApproximationBasedPlayer
             }
             double award = bet.getDouble("odds") - 1;
             double expectedAward = (chancesToWin * award - (1 - chancesToWin));
-            if (expectedAward > 0) {
+            if (expectedAward > PLAYING_AWARD_THRESHOLD) {
                 selectedBets.add(bet);
             }
         }
