@@ -87,8 +87,12 @@ public class ProgressBar
             return String.format("%ds", seconds);
         }
         else if (hours == 0) {
+            seconds = seconds % 60;
             return String.format("%dmin %ds", minutes, seconds);
         }
+        seconds = seconds % 60;
+        seconds = seconds % 60;
+        minutes = minutes % 60;
         return String.format("%dh %dmin %ds", hours, minutes, seconds);
     }
 
