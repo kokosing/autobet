@@ -15,10 +15,11 @@ install: ./mvnw install -DskipTests -B -q
 
 script:
   - ./mvnw test
-  - ./bin/setup_devenv.sh
-  - java -jar target/autobet-0.1-SNAPSHOT-executable.jar stats -c 10000
-  - java -jar target/autobet-0.1-SNAPSHOT-executable.jar eval -c 1000 -s random
-  - java -jar target/autobet-0.1-SNAPSHOT-executable.jar eval -c 1000 -s goal_based
+  - | 
+    if ! ./bin/devenv_update.sh; then
+      ./bin/devenv_create.sh
+      ./bin/devenv_update.sh
+    fi
 
 after_success:
     - |
