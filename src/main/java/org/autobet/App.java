@@ -106,7 +106,8 @@ public final class App
                 for (String child : list) {
                     load(loader, fileName + "/" + child);
                 }
-            } else {
+            }
+            else {
                 loadSingleFile(loader, fileName);
             }
         }
@@ -125,7 +126,6 @@ public final class App
                 ex.printStackTrace();
             }
         }
-
 
         @Override
         public String getName()
@@ -274,6 +274,16 @@ public final class App
 
             PlayerEvaluator evaluator = new PlayerEvaluator(driver, player);
             PlayerEvaluator.Statistics evaluation = evaluator.evaluate(getLimit());
+            int betsCount = evaluation.getBetsCount();
+            int playedBetsCount = evaluation.getPlayedBetsCount();
+            int winningBetsCount = evaluation.getWinningBetsCount();
+            double playingRatio = (double) playedBetsCount / betsCount;
+            double winningRatio = (double) winningBetsCount / playedBetsCount;
+
+            System.out.println(format("All bets count: %d", betsCount));
+            System.out.println(format("Played bets count: %d", playedBetsCount));
+            System.out.println(format("Winning bets count: %d", winningBetsCount));
+            System.out.println(format("Playing ratio: %.2f, winning ratio: %.2f", playingRatio, winningRatio));
             System.out.println(format("Evaluation result: %.2f", evaluation.getResult()));
         }
 

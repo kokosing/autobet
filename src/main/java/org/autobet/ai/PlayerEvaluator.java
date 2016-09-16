@@ -46,23 +46,30 @@ public class PlayerEvaluator
             implements GamesProcessorDriver.GamesProcessor<Statistics>
     {
         private double result = 0;
+        private int betsCount = 0;
+        private int playedBetsCount = 0;
+        private int winningBetCount = 0;
 
         @Override
         public void process(Game game)
         {
-            List<Bet> selectedBets = player.guess(game, game.getBets());
+            List<Bet> bets = game.getBets();
+            List<Bet> selectedBets = player.guess(game, bets);
             for (Bet bet : selectedBets) {
                 if (bet.isWinning(game)) {
                     result += bet.getDouble("odds");
+                    winningBetCount++;
                 }
                 result -= 1;
             }
+            betsCount += bets.size();
+            playedBetsCount += selectedBets.size();
         }
 
         @Override
         public Statistics finish()
         {
-            return new Statistics(player.getName(), result);
+            return new Statistics(player.getName(), result, betsCount, playedBetsCount, winningBetCount);
         }
     }
 
@@ -71,12 +78,23 @@ public class PlayerEvaluator
     {
         private final String storageKey;
         private final double result;
+        private final int betsCount;
+        private final int playedBetsCount;
+        private final int winningBetsCount;
 
         @JsonCreator
-        public Statistics(@JsonProperty("storageKey") String storageKey, @JsonProperty("result") double result)
+        public Statistics(
+                @JsonProperty("storageKey") String storageKey,
+                @JsonProperty("result") double result,
+                @JsonProperty("betsCount") int betsCount,
+                @JsonProperty("playedBetsCount") int playedBetsCount,
+                @JsonProperty("winningBetsCount") int winningBetsCount)
         {
             this.storageKey = storageKey;
             this.result = result;
+            this.betsCount = betsCount;
+            this.playedBetsCount = playedBetsCount;
+            this.winningBetsCount = winningBetsCount;
         }
 
         @JsonProperty("result")
@@ -92,6 +110,24 @@ public class PlayerEvaluator
             return storageKey;
         }
 
+        @JsonProperty("betsCount")
+        public int getBetsCount()
+        {
+            return betsCount;
+        }
+
+        @JsonProperty("playedBetsCount")
+        public int getPlayedBetsCount()
+        {
+            return playedBetsCount;
+        }
+
+        @JsonProperty("winningBetCount")
+        public int getWinningBetsCount()
+        {
+            return winningBetsCount;
+        }
+
         @Override
         public Statistics merge(Statistics other)
         {
@@ -101,7 +137,11 @@ public class PlayerEvaluator
                     storageKey,
                     other.getStorageKey());
 
-            return new Statistics(storageKey, result + other.getResult());
+            return new Statistics(storageKey,
+                    result + other.getResult(),
+                    betsCount + other.betsCount,
+                    playedBetsCount + other.playedBetsCount,
+                    winningBetsCount + other.winningBetsCount);
         }
     }
 }
