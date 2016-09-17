@@ -122,7 +122,7 @@ public class PlayerEvaluator
             return playedBetsCount;
         }
 
-        @JsonProperty("winningBetCount")
+        @JsonProperty("winningBetsCount")
         public int getWinningBetsCount()
         {
             return winningBetsCount;
