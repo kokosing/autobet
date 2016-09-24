@@ -55,8 +55,13 @@ public class ProgressBar
         }
         if (counter.get() >= count) {
             display(now);
-            System.out.println("");
+            finish();
         }
+    }
+
+    private void finish()
+    {
+        System.out.println("");
     }
 
     private void display(Instant now)
@@ -99,5 +104,11 @@ public class ProgressBar
     public long getCounter()
     {
         return counter.get();
+    }
+
+    public void stop(String reason)
+    {
+        finish();
+        System.out.println("Processing interrupted: " + reason);
     }
 }

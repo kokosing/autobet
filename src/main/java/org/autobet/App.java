@@ -31,6 +31,7 @@ import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.DBException;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -171,7 +172,9 @@ public final class App
             GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
             TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(gamesProcessorDriver, teamRater);
             long start = currentTimeMillis();
-            TeamRaterStatsCollector.TeamRaterStats teamRaterStats = statsCollector.collect(getLimit());
+            TeamRaterStatsCollector.TeamRaterStats teamRaterStats = statsCollector.collect(
+                    getGamesLimit(),
+                    getTimeLimit());
             long end = currentTimeMillis();
             TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(teamRaterStats);
             System.out.println("Stats collection took: " + (end - start) + "ms");
@@ -243,7 +246,7 @@ public final class App
                     GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
                     //TODO: do not collect stats here
                     TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(driver, teamRater);
-                    TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(Optional.of(100));
+                    TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(Optional.of(100), Optional.empty());
                     TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(stats);
                     player = new ChancesApproximationBasedPlayer(approximation, teamRater);
                     break;
@@ -255,7 +258,7 @@ public final class App
             }
 
             PlayerEvaluator evaluator = new PlayerEvaluator(driver, player);
-            PlayerEvaluator.Statistics evaluation = evaluator.evaluate(getLimit());
+            PlayerEvaluator.Statistics evaluation = evaluator.evaluate(getGamesLimit(), getTimeLimit());
             int betsCount = evaluation.getBetsCount();
             int playedBetsCount = evaluation.getPlayedBetsCount();
             int winningBetsCount = evaluation.getWinningBetsCount();
@@ -280,16 +283,26 @@ public final class App
             implements Command
     {
         @Parameter(
-                names = {"-c", "--max-count"},
+                names = {"-g", "--max-games"},
                 description = "number of maximum games to to process (default: unlimited)")
-        private int limit = -1;
+        private int gamesLimit = -1;
 
-        protected Optional<Integer> getLimit()
+        @Parameter(
+                names = {"-t", "--max-time"},
+                description = "maximum processing duration (default: unlimited)")
+        private String timeLimit = null;
+
+        protected Optional<Integer> getGamesLimit()
         {
-            if (limit > 0) {
-                return Optional.of(limit);
+            if (gamesLimit > 0) {
+                return Optional.of(gamesLimit);
             }
             return Optional.empty();
+        }
+
+        protected Optional<Duration> getTimeLimit()
+        {
+            return Optional.ofNullable(timeLimit).map(Duration::parse);
         }
     }
 

@@ -21,6 +21,7 @@ import org.autobet.model.Game;
 import org.autobet.util.GamesProcessorDriver;
 import org.autobet.util.KeyValueStore;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,9 +38,9 @@ public class PlayerEvaluator
         this.player = player;
     }
 
-    public Statistics evaluate(Optional<Integer> limit)
+    public Statistics evaluate(Optional<Integer> gamesLimit, Optional<Duration> timeLimit)
     {
-        return gamesProcessorDriver.driveProcessors(() -> new GameProcessor(), limit);
+        return gamesProcessorDriver.driveProcessors(() -> new GameProcessor(), gamesLimit, timeLimit);
     }
 
     private final class GameProcessor

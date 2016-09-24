@@ -24,9 +24,12 @@ import org.javalite.activejdbc.Base;
 
 import javax.inject.Provider;
 
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.IntStream;
@@ -36,6 +39,7 @@ import static org.autobet.ImmutableCollectors.toImmutableList;
 
 public class GamesProcessorDriver
 {
+    private final Timer timer = new Timer(true);
     private final MainComponent mainComponent;
     private final int threadsCount;
 
@@ -52,7 +56,8 @@ public class GamesProcessorDriver
 
     public <T extends KeyValueStore.Storable> T driveProcessors(
             Provider<GamesProcessor<T>> gamesProcessorProvider,
-            Optional<Integer> limit)
+            Optional<Integer> gamesLimit,
+            Optional<Duration> timeLimit)
     {
         T union = gamesProcessorProvider.get().finish();
         String storeKey = union.getStorageKey();
@@ -66,16 +71,27 @@ public class GamesProcessorDriver
         }
 
         long count = Game.count() - startGame;
-        if (limit.isPresent() && limit.get() < count) {
-            count = limit.get();
+        if (gamesLimit.isPresent() && gamesLimit.get() < count) {
+            count = gamesLimit.get();
         }
         ProgressBar progressBar = new ProgressBar(count, "games");
 
-        GameSupplier games = new GameSupplier(startGame, limit);
+        GameSupplier games = new GameSupplier(startGame, gamesLimit);
+        if (timeLimit.isPresent()) {
+            timer.schedule(new TimerTask()
+            {
+                @Override
+                public void run()
+                {
+                    progressBar.stop("Timeout");
+                    games.close();
+                }
+            }, timeLimit.get().toMillis());
+        }
         T result = processGames(gamesProcessorProvider, cachedResult.orElse(union), progressBar, games);
 
         KeyValueStore.store(storeKey, result);
-        KeyValueStore.store(countKey, Ints.checkedCast(startGame + count));
+        KeyValueStore.store(countKey, Ints.checkedCast(startGame + games.getCount()));
         return result;
     }
 
@@ -128,6 +144,8 @@ public class GamesProcessorDriver
     private class GameSupplier
     {
         private final Iterator<Game> games;
+        private int count = 0;
+        private boolean finished = false;
 
         private GameSupplier(int startGame, Optional<Integer> gamesLimit)
         {
@@ -136,10 +154,21 @@ public class GamesProcessorDriver
 
         private synchronized Optional<Game> next()
         {
-            if (games.hasNext()) {
+            if (!finished && games.hasNext()) {
+                count++;
                 return Optional.of(games.next());
             }
             return Optional.empty();
+        }
+
+        public synchronized void close()
+        {
+            finished = true;
+        }
+
+        public int getCount()
+        {
+            return count;
         }
     }
 }

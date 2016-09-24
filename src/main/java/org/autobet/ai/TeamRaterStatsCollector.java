@@ -23,6 +23,7 @@ import org.autobet.model.Game;
 import org.autobet.util.GamesProcessorDriver;
 import org.autobet.util.KeyValueStore;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,9 +48,9 @@ public class TeamRaterStatsCollector
         this.teamRater = teamRater;
     }
 
-    public TeamRaterStats collect(Optional<Integer> limit)
+    public TeamRaterStats collect(Optional<Integer> gamesLimit, Optional<Duration> timeLimit)
     {
-        return gamesProcessorDriver.driveProcessors(GameProcessor::new, limit);
+        return gamesProcessorDriver.driveProcessors(GameProcessor::new, gamesLimit, timeLimit);
     }
 
     private class GameProcessor
