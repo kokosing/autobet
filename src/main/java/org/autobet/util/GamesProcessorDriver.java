@@ -16,6 +16,7 @@ package org.autobet.util;
 
 import com.google.common.base.Throwables;
 import com.google.common.primitives.Ints;
+import net.jcip.annotations.ThreadSafe;
 import org.autobet.ioc.MainComponent;
 import org.autobet.model.Game;
 import org.autobet.ui.ProgressBar;
@@ -70,24 +71,18 @@ public class GamesProcessorDriver
         }
         ProgressBar progressBar = new ProgressBar(count, "games");
 
-        Iterator<Game> games = Game.findAll(startGame, limit).iterator();
+        GameSupplier games = new GameSupplier(startGame, limit);
         List<CompletableFuture<T>> futures = IntStream.range(0, threadsCount)
                 .mapToObj(i -> supplyAsync(() -> {
                     Base.open(mainComponent.getDataSource());
                     try {
                         GamesProcessor<T> gamesProcessor = gamesProcessorProvider.get();
-                        Game game;
                         while (true) {
-                            synchronized (games) {
-                                if (games.hasNext()) {
-                                    game = games.next();
-                                }
-                                else {
-                                    break;
-                                }
+                            Optional<Game> game = games.next();
+                            if (!game.isPresent()) {
+                                break;
                             }
-
-                            gamesProcessor.process(game);
+                            gamesProcessor.process(game.get());
                             progressBar.increment();
                         }
                         return gamesProcessor.finish();
@@ -117,5 +112,24 @@ public class GamesProcessorDriver
         void process(Game game);
 
         T finish();
+    }
+
+    @ThreadSafe
+    private class GameSupplier
+    {
+        private final Iterator<Game> games;
+
+        private GameSupplier(int startGame, Optional<Integer> gamesLimit)
+        {
+            games = Game.findAll(startGame, gamesLimit).iterator();
+        }
+
+        private synchronized Optional<Game> next()
+        {
+            if (games.hasNext()) {
+                return Optional.of(games.next());
+            }
+            return Optional.empty();
+        }
     }
 }
