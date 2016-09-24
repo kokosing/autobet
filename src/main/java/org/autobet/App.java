@@ -162,13 +162,8 @@ public final class App
 
     @Parameters(commandDescription = "Calculate team rater statistics")
     public static final class StatsCalculatorCommand
-            implements Command
+            extends GamesProcessingCommand
     {
-        @Parameter(
-                names = {"-c", "--max-count"},
-                description = "number of maximum games to to process (default: unlimited)")
-        private int limit = -1;
-
         @Override
         public void go(MainComponent component)
         {
@@ -216,14 +211,6 @@ public final class App
             System.out.println(format("Approximation error: %.2f", totalApproximationError));
         }
 
-        private Optional<Integer> getLimit()
-        {
-            if (limit > 0) {
-                return Optional.of(limit);
-            }
-            return Optional.empty();
-        }
-
         @Override
         public String getName()
         {
@@ -233,13 +220,8 @@ public final class App
 
     @Parameters(commandDescription = "Evaluate the player strategy")
     public static final class PlayerEvaluatorCommand
-            implements Command
+            extends GamesProcessingCommand
     {
-        @Parameter(
-                names = {"-c", "--max-count"},
-                description = "number of maximum games to to process (default: unlimited)")
-        private int limit = -1;
-
         @Parameter(names = {"-s", "--strategy"}, description = "strategy to test (default: goal_based)")
         private String strategy = "goal_based";
 
@@ -287,18 +269,27 @@ public final class App
             System.out.println(format("Evaluation result: %.2f", evaluation.getResult()));
         }
 
-        private Optional<Integer> getLimit()
+        @Override
+        public String getName()
+        {
+            return "eval";
+        }
+    }
+
+    private static abstract class GamesProcessingCommand
+            implements Command
+    {
+        @Parameter(
+                names = {"-c", "--max-count"},
+                description = "number of maximum games to to process (default: unlimited)")
+        private int limit = -1;
+
+        protected Optional<Integer> getLimit()
         {
             if (limit > 0) {
                 return Optional.of(limit);
             }
             return Optional.empty();
-        }
-
-        @Override
-        public String getName()
-        {
-            return "eval";
         }
     }
 
