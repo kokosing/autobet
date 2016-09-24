@@ -7,4 +7,4 @@ fi
 
 java -jar target/autobet-0.1-SNAPSHOT-executable.jar stats -t PT10M
 java -jar target/autobet-0.1-SNAPSHOT-executable.jar eval -t PT1M -s random
-java -jar target/autobet-0.1-SNAPSHOT-executable.jar eval -c PT1M -s goal_based
+java -jar target/autobet-0.1-SNAPSHOT-executable.jar eval -t PT1M -s goal_based
