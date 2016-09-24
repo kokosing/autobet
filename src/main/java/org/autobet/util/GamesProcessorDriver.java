@@ -72,6 +72,19 @@ public class GamesProcessorDriver
         ProgressBar progressBar = new ProgressBar(count, "games");
 
         GameSupplier games = new GameSupplier(startGame, limit);
+        T result = processGames(gamesProcessorProvider, cachedResult.orElse(union), progressBar, games);
+
+        KeyValueStore.store(storeKey, result);
+        KeyValueStore.store(countKey, Ints.checkedCast(startGame + count));
+        return result;
+    }
+
+    private <T extends KeyValueStore.Storable> T processGames(
+            Provider<GamesProcessor<T>> gamesProcessorProvider,
+            T cachedResult,
+            ProgressBar progressBar,
+            GameSupplier games)
+    {
         List<CompletableFuture<T>> futures = IntStream.range(0, threadsCount)
                 .mapToObj(i -> supplyAsync(() -> {
                     Base.open(mainComponent.getDataSource());
@@ -92,7 +105,7 @@ public class GamesProcessorDriver
                     }
                 })).collect(toImmutableList());
 
-        T result = cachedResult.orElse(union);
+        T result = cachedResult;
         for (CompletableFuture<T> future : futures) {
             try {
                 result = (T) result.merge(future.get());
@@ -101,9 +114,6 @@ public class GamesProcessorDriver
                 throw Throwables.propagate(e);
             }
         }
-
-        KeyValueStore.store(storeKey, result);
-        KeyValueStore.store(countKey, Ints.checkedCast(startGame + count));
         return result;
     }
 
