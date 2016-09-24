@@ -10,6 +10,7 @@ notifications:
     recipients:
         - g.kokosinski@gmail.com
 
+before_install: pip install docker-squash
 
 install: ./mvnw install -DskipTests -B -q
 
@@ -26,5 +27,6 @@ after_success:
       if [ "$TRAVIS_BRANCH" == "master" ]; then
         docker commit mysql_autobet kokosing/mysql_autobet:latest
         docker login -u="$DOCKER_LOGIN" -p="$DOCKER_PASSWORD"
+        docker-squash kokosing/mysql_autobet:latest
         docker push kokosing/mysql_autobet:latest
       fi
