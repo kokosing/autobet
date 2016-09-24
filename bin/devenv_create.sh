@@ -6,7 +6,7 @@ docker rm -f mysql_autobet || true
 
 docker run --name mysql_autobet -e MYSQL_ROOT_PASSWORD=mysql -e MYSQL_USER=mysql -e MYSQL_PASSWORD=mysql -d -p 13306:3306 kokosing/mysql
 
-./mvnw install -DskipTests
+./mvnw install -DskipTests -q
 
 sleep 10
 
