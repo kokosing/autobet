@@ -5,6 +5,6 @@ if ! docker ps | grep mysql_autobet -q; then
   sleep 20
 fi
 
-java -jar target/autobet-0.1-SNAPSHOT-executable.jar stats -c 5000
-java -jar target/autobet-0.1-SNAPSHOT-executable.jar eval -c 500 -s random
-java -jar target/autobet-0.1-SNAPSHOT-executable.jar eval -c 500 -s goal_based
+java -jar target/autobet-0.1-SNAPSHOT-executable.jar stats -t PT10M
+java -jar target/autobet-0.1-SNAPSHOT-executable.jar eval -t PT1M -s random
+java -jar target/autobet-0.1-SNAPSHOT-executable.jar eval -c PT1M -s goal_based
