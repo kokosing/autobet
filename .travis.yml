@@ -27,6 +27,6 @@ after_success:
       if [ "$TRAVIS_BRANCH" == "master" ]; then
         docker commit mysql_autobet kokosing/mysql_autobet:latest
         docker login -u="$DOCKER_LOGIN" -p="$DOCKER_PASSWORD"
-        docker-squash kokosing/mysql_autobet:latest
+        docker-squash -t kokosing/mysql_autobet:latest -t tmp -c kokosing/mysql_autobet:latest
         docker push kokosing/mysql_autobet:latest
       fi
