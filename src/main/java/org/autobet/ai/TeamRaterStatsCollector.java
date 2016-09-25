@@ -40,23 +40,28 @@ public class TeamRaterStatsCollector
     }
 
     private final GamesProcessorDriver gamesProcessorDriver;
-    private final TeamRater teamRater;
 
-    public TeamRaterStatsCollector(GamesProcessorDriver gamesProcessorDriver, TeamRater teamRater)
+    public TeamRaterStatsCollector(GamesProcessorDriver gamesProcessorDriver)
     {
         this.gamesProcessorDriver = gamesProcessorDriver;
-        this.teamRater = teamRater;
     }
 
-    public TeamRaterStats collect(Optional<Integer> gamesLimit, Optional<Duration> timeLimit)
+    public TeamRaterStats collect(TeamRater teamRater, Optional<Integer> gamesLimit, Optional<Duration> timeLimit)
     {
-        return gamesProcessorDriver.driveProcessors(GameProcessor::new, gamesLimit, timeLimit);
+        return gamesProcessorDriver.driveProcessors(() -> new GameProcessor(teamRater), gamesLimit, timeLimit);
     }
 
-    private class GameProcessor
+    private static class GameProcessor
             implements GamesProcessorDriver.GamesProcessor<TeamRaterStats>
     {
-        private final TeamRaterStats.Builder builder = TeamRaterStats.builder(teamRater.getName());
+        private final TeamRater teamRater;
+        private final TeamRaterStats.Builder builder;
+
+        public GameProcessor(TeamRater teamRater)
+        {
+            this.teamRater = teamRater;
+            this.builder = TeamRaterStats.builder(teamRater.getName());
+        }
 
         @Override
         public void process(Game game)

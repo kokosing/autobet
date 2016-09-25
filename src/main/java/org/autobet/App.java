@@ -169,10 +169,10 @@ public final class App
         public void go(MainComponent component)
         {
             GamesProcessorDriver gamesProcessorDriver = new GamesProcessorDriver(component);
-            GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
-            TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(gamesProcessorDriver, teamRater);
+            TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(gamesProcessorDriver);
             long start = currentTimeMillis();
             TeamRaterStatsCollector.TeamRaterStats teamRaterStats = statsCollector.collect(
+                    new GoalBasedTeamRater(),
                     getGamesLimit(),
                     getTimeLimit());
             long end = currentTimeMillis();
@@ -245,8 +245,11 @@ public final class App
                 case "goal_based":
                     GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
                     //TODO: do not collect stats here
-                    TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(driver, teamRater);
-                    TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(Optional.of(100), Optional.empty());
+                    TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(driver);
+                    TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(
+                            teamRater,
+                            Optional.of(100),
+                            Optional.empty());
                     TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(stats);
                     player = new ChancesApproximationBasedPlayer(approximation, teamRater);
                     break;
@@ -257,8 +260,8 @@ public final class App
                     throw new IllegalStateException("Unknown player strategy: " + strategy);
             }
 
-            PlayerEvaluator evaluator = new PlayerEvaluator(driver, player);
-            PlayerEvaluator.Statistics evaluation = evaluator.evaluate(getGamesLimit(), getTimeLimit());
+            PlayerEvaluator evaluator = new PlayerEvaluator(driver);
+            PlayerEvaluator.Statistics evaluation = evaluator.evaluate(player, getGamesLimit(), getTimeLimit());
             int betsCount = evaluation.getBetsCount();
             int playedBetsCount = evaluation.getPlayedBetsCount();
             int winningBetsCount = evaluation.getWinningBetsCount();

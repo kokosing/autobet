@@ -30,26 +30,30 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class PlayerEvaluator
 {
     private final GamesProcessorDriver gamesProcessorDriver;
-    private final Player player;
 
-    public PlayerEvaluator(GamesProcessorDriver gamesProcessorDriver, Player player)
+    public PlayerEvaluator(GamesProcessorDriver gamesProcessorDriver)
     {
         this.gamesProcessorDriver = gamesProcessorDriver;
-        this.player = player;
     }
 
-    public Statistics evaluate(Optional<Integer> gamesLimit, Optional<Duration> timeLimit)
+    public Statistics evaluate(Player player, Optional<Integer> gamesLimit, Optional<Duration> timeLimit)
     {
-        return gamesProcessorDriver.driveProcessors(() -> new GameProcessor(), gamesLimit, timeLimit);
+        return gamesProcessorDriver.driveProcessors(() -> new GameProcessor(player), gamesLimit, timeLimit);
     }
 
     private final class GameProcessor
             implements GamesProcessorDriver.GamesProcessor<Statistics>
     {
+        private final Player player;
         private double result = 0;
         private int betsCount = 0;
         private int playedBetsCount = 0;
         private int winningBetCount = 0;
+
+        public GameProcessor(Player player)
+        {
+            this.player = player;
+        }
 
         @Override
         public void process(Game game)

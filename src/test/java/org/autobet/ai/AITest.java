@@ -38,9 +38,9 @@ public class AITest
     {
         GamesProcessorDriver gamesProcessorDriver = new GamesProcessorDriver(temporaryDatabase.getComponent(), 1);
         RandomPlayer player = new RandomPlayer();
-        PlayerEvaluator evaluator = new PlayerEvaluator(gamesProcessorDriver, player);
+        PlayerEvaluator evaluator = new PlayerEvaluator(gamesProcessorDriver);
 
-        PlayerEvaluator.Statistics evaluation = evaluator.evaluate(Optional.of(100), Optional.empty());
+        PlayerEvaluator.Statistics evaluation = evaluator.evaluate(player, Optional.of(100), Optional.empty());
 
         assertTrue(evaluation.getResult() < 100);
     }
@@ -62,12 +62,12 @@ public class AITest
     {
         GamesProcessorDriver gamesProcessorDriver = new GamesProcessorDriver(temporaryDatabase.getComponent(), 1);
         GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
-        TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(gamesProcessorDriver, teamRater);
+        TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(gamesProcessorDriver);
 
-        TeamRaterStats raterStats = statsCollector.collect(Optional.of(100), Optional.empty());
+        TeamRaterStats raterStats = statsCollector.collect(teamRater, Optional.of(100), Optional.empty());
         assertEquals(raterStats.getCount(), 46);
 
-        raterStats = statsCollector.collect(Optional.of(300), Optional.empty());
+        raterStats = statsCollector.collect(teamRater, Optional.of(300), Optional.empty());
         assertEquals(raterStats.getCount(), 252);
 
         assertEquals(raterStats.getHome(1000).getCount(), 0);
@@ -99,8 +99,8 @@ public class AITest
         assertEquals(approximation.getDrawChances(10), 0.23, 0.01);
 
         ChancesApproximationBasedPlayer player = new ChancesApproximationBasedPlayer(approximation, teamRater);
-        PlayerEvaluator playerEvaluator = new PlayerEvaluator(gamesProcessorDriver, player);
-        PlayerEvaluator.Statistics playerStats = playerEvaluator.evaluate(Optional.empty(), Optional.empty());
+        PlayerEvaluator playerEvaluator = new PlayerEvaluator(gamesProcessorDriver);
+        PlayerEvaluator.Statistics playerStats = playerEvaluator.evaluate(player, Optional.empty(), Optional.empty());
         assertEquals(playerStats.getResult(), -115.05, 0.01);
         assertEquals(playerStats.getBetsCount(), 3600);
         assertEquals(playerStats.getPlayedBetsCount(), 187);
