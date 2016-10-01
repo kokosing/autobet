@@ -15,15 +15,44 @@
 package org.autobet.ioc;
 
 import dagger.Component;
+import org.autobet.ai.Player;
+import org.autobet.ai.PlayerEvaluator;
+import org.autobet.ai.TeamRater;
+import org.autobet.ai.TeamRaterStatsCollector;
 
 import javax.inject.Singleton;
 import javax.sql.DataSource;
 
+import java.util.Map;
+import java.util.Set;
+
+import static org.autobet.ImmutableCollectors.toImmutableMap;
+
 @Singleton
-@Component(modules = {DataSourceModule.class, DatabaseConnectionModule.class})
+@Component(modules = {DataSourceModule.class, DatabaseConnectionModule.class, AIModule.class})
 public interface MainComponent
 {
     DatabaseConnectionModule.DatabaseConnection connectToDatabase();
 
     DataSource getDataSource();
+
+    Set<Player> getPlayers();
+
+    default Map<String, Player> getPlayersMap()
+    {
+        return getPlayers().stream()
+                .collect(toImmutableMap(Player::getName));
+    }
+
+    Set<TeamRater> getTeamRaters();
+
+    default Map<String, TeamRater> getTeamRaterMap()
+    {
+        return getTeamRaters().stream()
+                .collect(toImmutableMap(TeamRater::getName));
+    }
+
+    PlayerEvaluator getPlayerEvaluator();
+
+    TeamRaterStatsCollector getStatsCollector();
 }

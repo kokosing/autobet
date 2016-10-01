@@ -29,10 +29,12 @@
 package org.autobet;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import org.autobet.ioc.AIModule;
 import org.autobet.ioc.DaggerMainComponent;
 import org.autobet.ioc.DataSourceModule;
 import org.autobet.ioc.DatabaseConnectionModule;
 import org.autobet.ioc.MainComponent;
+import org.autobet.util.GamesProcessorDriver;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,18 +73,27 @@ public class TemporaryDatabase
     {
         super.before();
         mySQLContainer.start();
-        mainComponent = DaggerMainComponent.builder().dataSourceModule(new DataSourceModule()
-        {
-            @Override
-            public DataSource provideDataSource()
-            {
-                MysqlDataSource dataSource = new MysqlDataSource();
-                dataSource.setURL(mySQLContainer.getJdbcUrl());
-                dataSource.setUser(mySQLContainer.getUsername());
-                dataSource.setPassword(mySQLContainer.getPassword());
-                return dataSource;
-            }
-        }).build();
+        mainComponent = DaggerMainComponent.builder()
+                .aIModule(new AIModule()
+                {
+                    @Override
+                    public GamesProcessorDriver provideDriver(DataSource dataSource)
+                    {
+                        return new GamesProcessorDriver(dataSource, 1);
+                    }
+                })
+                .dataSourceModule(new DataSourceModule()
+                {
+                    @Override
+                    public DataSource provideDataSource()
+                    {
+                        MysqlDataSource dataSource = new MysqlDataSource();
+                        dataSource.setURL(mySQLContainer.getJdbcUrl());
+                        dataSource.setUser(mySQLContainer.getUsername());
+                        dataSource.setPassword(mySQLContainer.getPassword());
+                        return dataSource;
+                    }
+                }).build();
         connection = mainComponent.connectToDatabase();
 
         if (load) {

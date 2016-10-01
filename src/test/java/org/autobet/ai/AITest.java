@@ -17,7 +17,6 @@ package org.autobet.ai;
 import org.autobet.TemporaryDatabase;
 import org.autobet.ai.TeamRaterStatsCollector.TeamRaterStats;
 import org.autobet.model.Team;
-import org.autobet.util.GamesProcessorDriver;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -36,11 +35,7 @@ public class AITest
     @Test
     public void evaluateRandomPlayer()
     {
-        GamesProcessorDriver gamesProcessorDriver = new GamesProcessorDriver(temporaryDatabase.getComponent(), 1);
-        RandomPlayer player = new RandomPlayer();
-        PlayerEvaluator evaluator = new PlayerEvaluator(gamesProcessorDriver);
-
-        PlayerEvaluator.Statistics evaluation = evaluator.evaluate(player, Optional.of(100), Optional.empty());
+        PlayerEvaluator.Statistics evaluation = evaluate(new RandomPlayer());
 
         assertTrue(evaluation.getResult() < 100);
     }
@@ -48,13 +43,16 @@ public class AITest
     @Test
     public void evaluateLowBetPlayer()
     {
-        GamesProcessorDriver gamesProcessorDriver = new GamesProcessorDriver(temporaryDatabase.getComponent(), 1);
-        Player player = new LowBetPlayer();
-        PlayerEvaluator evaluator = new PlayerEvaluator(gamesProcessorDriver);
-
-        PlayerEvaluator.Statistics evaluation = evaluator.evaluate(player, Optional.of(100), Optional.empty());
+        PlayerEvaluator.Statistics evaluation = evaluate(new LowBetPlayer());
 
         assertTrue(evaluation.getResult() < 100);
+    }
+
+    private PlayerEvaluator.Statistics evaluate(Player player)
+    {
+        PlayerEvaluator evaluator = temporaryDatabase.getComponent().getPlayerEvaluator();
+
+        return evaluator.evaluate(player, Optional.of(100), Optional.empty());
     }
 
     @Test
@@ -72,9 +70,8 @@ public class AITest
     @Test
     public void testStats()
     {
-        GamesProcessorDriver gamesProcessorDriver = new GamesProcessorDriver(temporaryDatabase.getComponent(), 1);
         GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
-        TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(gamesProcessorDriver);
+        TeamRaterStatsCollector statsCollector = temporaryDatabase.getComponent().getStatsCollector();
 
         TeamRaterStats raterStats = statsCollector.collect(teamRater, Optional.of(100), Optional.empty());
         assertEquals(raterStats.getCount(), 46);
@@ -111,7 +108,7 @@ public class AITest
         assertEquals(approximation.getDrawChances(10), 0.23, 0.01);
 
         ChancesApproximationBasedPlayer player = new ChancesApproximationBasedPlayer(approximation, teamRater);
-        PlayerEvaluator playerEvaluator = new PlayerEvaluator(gamesProcessorDriver);
+        PlayerEvaluator playerEvaluator = temporaryDatabase.getComponent().getPlayerEvaluator();
         PlayerEvaluator.Statistics playerStats = playerEvaluator.evaluate(player, Optional.empty(), Optional.empty());
         assertEquals(playerStats.getResult(), -115.05, 0.01);
         assertEquals(playerStats.getBetsCount(), 3600);

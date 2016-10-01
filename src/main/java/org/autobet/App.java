@@ -16,18 +16,14 @@ package org.autobet;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import org.autobet.ai.ChancesApproximationBasedPlayer;
-import org.autobet.ai.GoalBasedTeamRater;
-import org.autobet.ai.LowBetPlayer;
 import org.autobet.ai.Player;
 import org.autobet.ai.PlayerEvaluator;
-import org.autobet.ai.RandomPlayer;
+import org.autobet.ai.TeamRater;
 import org.autobet.ai.TeamRaterStatsCollector;
 import org.autobet.ai.TeamRatersStatsApproximation;
 import org.autobet.ioc.DaggerMainComponent;
 import org.autobet.ioc.DatabaseConnectionModule.DatabaseConnection;
 import org.autobet.ioc.MainComponent;
-import org.autobet.util.GamesProcessorDriver;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.DBException;
 
@@ -40,11 +36,13 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static java.lang.Double.isNaN;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.joining;
 import static org.autobet.ImmutableCollectors.toImmutableMap;
 
 public final class App
@@ -54,7 +52,7 @@ public final class App
             .collect(toImmutableMap(Command::getName));
 
     @Parameter(names = {"--help", "-h"}, help = true)
-    private boolean help;
+    private boolean help = false;
 
     public static final void main(String[] args)
     {
@@ -166,14 +164,28 @@ public final class App
     public static final class StatsCalculatorCommand
             extends GamesProcessingCommand
     {
+        @Parameter(names = {"-s", "--strategy"}, description = "strategy to test (default: goal_based)")
+        private String strategy = "goal_based";
+
+        @Parameter(names = {"-l", "--list-strategies"}, description = "list available strategies")
+        private boolean listStrategies;
+
         @Override
         public void go(MainComponent component)
         {
-            GamesProcessorDriver gamesProcessorDriver = new GamesProcessorDriver(component);
-            TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(gamesProcessorDriver);
+            Map<String, TeamRater> teamRaterMap = component.getTeamRaterMap();
+            if (listStrategies) {
+                System.out.println(teamRaterMap.keySet().stream().collect(joining(", ")));
+                return;
+            }
+
+            checkState(teamRaterMap.containsKey(strategy), "Unknown strategy: %s", strategy);
+            TeamRater teamRater = teamRaterMap.get(strategy);
+
+            TeamRaterStatsCollector statsCollector = component.getStatsCollector();
             long start = currentTimeMillis();
             TeamRaterStatsCollector.TeamRaterStats teamRaterStats = statsCollector.collect(
-                    new GoalBasedTeamRater(),
+                    teamRater,
                     getGamesLimit(),
                     getTimeLimit());
             long end = currentTimeMillis();
@@ -229,42 +241,22 @@ public final class App
         @Parameter(names = {"-s", "--strategy"}, description = "strategy to test (default: goal_based)")
         private String strategy = "goal_based";
 
-        @Parameter(names = {"-l", "--list-strategies"}, description = "list available strategies", arity = 1)
-        private boolean listStrategies = false;
+        @Parameter(names = {"-l", "--list-strategies"}, description = "list available strategies")
+        private boolean listStrategies;
 
         @Override
         public void go(MainComponent component)
         {
+            Map<String, Player> playerMap = component.getPlayersMap();
             if (listStrategies) {
-                System.out.println("random, goal_based, low_bet");
+                System.out.println(playerMap.keySet().stream().collect(joining(", ")));
                 return;
             }
 
-            Player player;
-            GamesProcessorDriver driver = new GamesProcessorDriver(component);
-            switch (strategy) {
-                case "goal_based":
-                    GoalBasedTeamRater teamRater = new GoalBasedTeamRater();
-                    //TODO: do not collect stats here
-                    TeamRaterStatsCollector statsCollector = new TeamRaterStatsCollector(driver);
-                    TeamRaterStatsCollector.TeamRaterStats stats = statsCollector.collect(
-                            teamRater,
-                            Optional.of(100),
-                            Optional.empty());
-                    TeamRatersStatsApproximation approximation = new TeamRatersStatsApproximation(stats);
-                    player = new ChancesApproximationBasedPlayer(approximation, teamRater);
-                    break;
-                case "random":
-                    player = new RandomPlayer();
-                    break;
-                case "low_bet":
-                    player = new LowBetPlayer();
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown player strategy: " + strategy);
-            }
+            checkState(playerMap.containsKey(strategy), "Unknown player strategy: %s", strategy);
+            Player player = playerMap.get(strategy);
 
-            PlayerEvaluator evaluator = new PlayerEvaluator(driver);
+            PlayerEvaluator evaluator = component.getPlayerEvaluator();
             PlayerEvaluator.Statistics evaluation = evaluator.evaluate(player, getGamesLimit(), getTimeLimit());
             int betsCount = evaluation.getBetsCount();
             int playedBetsCount = evaluation.getPlayedBetsCount();

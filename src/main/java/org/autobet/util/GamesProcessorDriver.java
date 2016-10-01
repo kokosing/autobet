@@ -17,12 +17,12 @@ package org.autobet.util;
 import com.google.common.base.Throwables;
 import com.google.common.primitives.Ints;
 import net.jcip.annotations.ThreadSafe;
-import org.autobet.ioc.MainComponent;
 import org.autobet.model.Game;
 import org.autobet.ui.ProgressBar;
 import org.javalite.activejdbc.Base;
 
 import javax.inject.Provider;
+import javax.sql.DataSource;
 
 import java.time.Duration;
 import java.util.Iterator;
@@ -40,17 +40,17 @@ import static org.autobet.ImmutableCollectors.toImmutableList;
 public class GamesProcessorDriver
 {
     private final Timer timer = new Timer(true);
-    private final MainComponent mainComponent;
+    private final DataSource dataSource;
     private final int threadsCount;
 
-    public GamesProcessorDriver(MainComponent mainComponent)
+    public GamesProcessorDriver(DataSource dataSource)
     {
-        this(mainComponent, Runtime.getRuntime().availableProcessors());
+        this(dataSource, Runtime.getRuntime().availableProcessors());
     }
 
-    public GamesProcessorDriver(MainComponent mainComponent, int threadsCount)
+    public GamesProcessorDriver(DataSource dataSource, int threadsCount)
     {
-        this.mainComponent = mainComponent;
+        this.dataSource = dataSource;
         this.threadsCount = threadsCount;
     }
 
@@ -103,7 +103,7 @@ public class GamesProcessorDriver
     {
         List<CompletableFuture<T>> futures = IntStream.range(0, threadsCount)
                 .mapToObj(i -> supplyAsync(() -> {
-                    Base.open(mainComponent.getDataSource());
+                    Base.open(dataSource);
                     try {
                         GamesProcessor<T> gamesProcessor = gamesProcessorProvider.get();
                         while (true) {
