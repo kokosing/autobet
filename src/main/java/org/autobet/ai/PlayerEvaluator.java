@@ -62,7 +62,7 @@ public class PlayerEvaluator
             List<Bet> selectedBets = player.guess(game, bets);
             for (Bet bet : selectedBets) {
                 if (bet.isWinning(game)) {
-                    result += bet.getDouble("odds");
+                    result += bet.getOdds();
                     winningBetCount++;
                 }
                 result -= 1;

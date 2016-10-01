@@ -34,7 +34,7 @@ public class LowBetPlayer
     public List<Bet> guess(Game game, List<Bet> availableBets)
     {
         return availableBets.stream()
-                .filter(bet -> bet.getDouble("odds") < 1.1d)
+                .filter(bet -> bet.getOdds() < 1.1d)
                 .collect(toImmutableList());
     }
 }

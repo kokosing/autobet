@@ -29,4 +29,8 @@ public class Bet
     {
         return getBetType().getString("bet_suffix").equalsIgnoreCase(game.getString("full_time_result"));
     }
+
+    public double getOdds() {
+        return getDouble("odds");
+    }
 }

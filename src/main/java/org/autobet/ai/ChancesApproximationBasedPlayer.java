@@ -61,7 +61,7 @@ public class ChancesApproximationBasedPlayer
             else {
                 throw new IllegalStateException("Unexpected bet type: " + bet.getBetType().toJson(false));
             }
-            double award = bet.getDouble("odds") - 1;
+            double award = bet.getOdds() - 1;
             double expectedAward = (chancesToWin * award - (1 - chancesToWin));
             if (expectedAward > PLAYING_AWARD_THRESHOLD) {
                 selectedBets.add(bet);
