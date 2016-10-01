@@ -46,6 +46,18 @@ public class AITest
     }
 
     @Test
+    public void evaluateLowBetPlayer()
+    {
+        GamesProcessorDriver gamesProcessorDriver = new GamesProcessorDriver(temporaryDatabase.getComponent(), 1);
+        Player player = new LowBetPlayer();
+        PlayerEvaluator evaluator = new PlayerEvaluator(gamesProcessorDriver);
+
+        PlayerEvaluator.Statistics evaluation = evaluator.evaluate(player, Optional.of(100), Optional.empty());
+
+        assertTrue(evaluation.getResult() < 100);
+    }
+
+    @Test
     public void goalBasedTeamRater()
     {
         GoalBasedTeamRater rater = new GoalBasedTeamRater();

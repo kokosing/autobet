@@ -18,6 +18,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import org.autobet.ai.ChancesApproximationBasedPlayer;
 import org.autobet.ai.GoalBasedTeamRater;
+import org.autobet.ai.LowBetPlayer;
 import org.autobet.ai.Player;
 import org.autobet.ai.PlayerEvaluator;
 import org.autobet.ai.RandomPlayer;
@@ -235,7 +236,7 @@ public final class App
         public void go(MainComponent component)
         {
             if (listStrategies) {
-                System.out.println("random, goal_based");
+                System.out.println("random, goal_based, low_bet");
                 return;
             }
 
@@ -255,6 +256,9 @@ public final class App
                     break;
                 case "random":
                     player = new RandomPlayer();
+                    break;
+                case "low_bet":
+                    player = new LowBetPlayer();
                     break;
                 default:
                     throw new IllegalStateException("Unknown player strategy: " + strategy);
