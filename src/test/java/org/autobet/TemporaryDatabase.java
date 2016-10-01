@@ -47,7 +47,7 @@ public class TemporaryDatabase
 {
     private static final Logger log = LoggerFactory.getLogger(TemporaryDatabase.class);
 
-    private final MySQLContainer mySQLContainer = new MySQLContainer();
+    private final MySQLContainer mySQLContainer = new MySQLContainer("kokosing/mysql:latest");
     private final boolean load;
     private DatabaseConnectionModule.DatabaseConnection connection;
     private MainComponent mainComponent;
